@@ -33,6 +33,7 @@ protected:
 	UFUNCTION(BlueprintNativeEvent)
 	void Test_NativeEnventFunc();
 
+
 protected:
 	//C++ 전용 변수
 	//Unreal system에 영향을 받지 않음
@@ -63,6 +64,8 @@ protected:
 	int32 Data4_2 = 42;
 
 	UPROPERTY(BlueprintReadOnly)
+	//옛날 방식
+	//UStaticMeshComponent* MainMesh = nullptr;
 	TObjectPtr<UStaticMeshComponent> MainMesh = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
