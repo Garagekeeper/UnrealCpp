@@ -1,0 +1,30 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Animation/AnimInstance.h"
+#include "ActionAnimInstance.generated.h"
+
+
+class UPawnMovementComponent;
+/**
+ * 
+ */
+UCLASS()
+class UNREAL_CPP_API UActionAnimInstance : public UAnimInstance
+{
+	GENERATED_BODY()
+
+public:
+	virtual void NativeInitializeAnimation() override;
+	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	float MoveSpeed = 0;
+
+private:
+	TObjectPtr<UPawnMovementComponent> OwnerMovementComponent = nullptr;
+	
+};

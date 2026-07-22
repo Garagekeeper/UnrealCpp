@@ -38,6 +38,4 @@ void AActionPlayerController::OnLookAction(const FInputActionValue& Value)
 	FVector2D LookAxis = Value.Get<FVector2D>();
 	AddYawInput(LookAxis.X);
 	AddPitchInput(LookAxis.Y);
-
-	UE_LOG(LogTemp, Log, TEXT("OnLookAction 실행"));
 }
