@@ -59,7 +59,7 @@ protected:
 	TObjectPtr<class UInputAction> IA_Roll;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TWeakObjectPtr<UAnimMontage> RollMontage;
+	TObjectPtr<UAnimMontage> RollMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<UUserWidget> StaminaWidget;

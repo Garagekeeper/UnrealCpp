@@ -194,7 +194,7 @@ void AActionCharacter::OnSprintEnd()
 // play montage example
 void AActionCharacter::OnRollAction(const FInputActionValue& Value)
 {
-	if (!RollMontage.IsValid()) return;
+	if (!RollMontage) return;
 
 	// 스테미너 모자라면 못구름
 	if (IStaminaInterface::Execute_GetCurrentStamina(this) < RollStaminaUsage)  return;
@@ -220,7 +220,7 @@ void AActionCharacter::OnRollAction(const FInputActionValue& Value)
 			SetActorRotation(GetLastMovementInputVector().Rotation());
 		}
 
-		PlayAnimMontage(RollMontage.Get());
+		PlayAnimMontage(RollMontage);
 		IStaminaInterface::Execute_ConsumeStamina(this, RollStaminaUsage);
 	}
 }
