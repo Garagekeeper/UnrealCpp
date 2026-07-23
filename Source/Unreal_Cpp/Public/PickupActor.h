@@ -38,4 +38,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Stamina = 30.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Health = 30.0f;
+
 };

@@ -18,7 +18,7 @@ void UActionAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 	
-	if (OwnerMovementComponent)
+	if (OwnerMovementComponent.IsValid())
 	{
 		MoveSpeed = OwnerMovementComponent->Velocity.Size();
 	}

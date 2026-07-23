@@ -10,6 +10,7 @@
 #include "Blueprint/UserWidget.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Components/ProgressBar.h"
+#include "StatComponent.h"
 
 // Sets default values
 AActionCharacter::AActionCharacter()
@@ -23,47 +24,26 @@ AActionCharacter::AActionCharacter()
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Player Camera"));
 	CameraComponent->SetupAttachment(CameraSpringArmComponent);
 
+	StatComponent = CreateDefaultSubobject<UStatComponent>(TEXT("StatComponent"));
+
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	CameraSpringArmComponent->bUsePawnControlRotation = true;
 
-	static ConstructorHelpers::FClassFinder<UUserWidget> WidgetFinder(TEXT("/Game/Blueprints/Test/Test02/WBP_Stamina.WBP_Stamina_C"));
+	static ConstructorHelpers::FClassFinder<UUserWidget> WidgetFinder(TEXT("/Game/Blueprints/Test/Test02/WBP_Stat.WBP_Stat_C"));
 	if (WidgetFinder.Succeeded())
 	{
 		StaminaWidget = WidgetFinder.Class;
 	}
+
 }
 
-float AActionCharacter::GetCurrentStamina_Implementation() const
+UStatComponent* AActionCharacter::GetStatComponent_Implementation()
 {
-	return CurrentStamina;
+	return StatComponent;
 }
 
-bool AActionCharacter::ConsumeStamina_Implementation(float InAmount)
-{
-	bool bResult = false;
-	if (CurrentStamina >= InAmount)
-	{
-		CurrentStamina -= InAmount;
-		bResult = true;
-	}
 
-	CurrentStamina = FMath::Clamp(CurrentStamina, 0, MaxStamina);
-	NonuseElapsed = 0;
-	//UE_LOG(LogTemp, Log, TEXT("현재 Stamina : %.1f"), CurrentStamina);
-	return bResult;
-}
-
-void AActionCharacter::RecoveryStamina_Implementation(float InAmount)
-{
-	CurrentStamina = FMath::Clamp(CurrentStamina + InAmount, 0, MaxStamina);
-	//UE_LOG(LogTemp, Log, TEXT("현재 Stamina : %.1f"), CurrentStamina);
-}
-
-float AActionCharacter::GetMaxStamina_Implementation() const
-{
-	return FMath::IsNearlyZero(MaxStamina) ? 100.0f : MaxStamina;
-}
 
 // Called when the game starts or when spawned
 void AActionCharacter::BeginPlay()
@@ -80,9 +60,6 @@ void AActionCharacter::BeginPlay()
 		AnimInstance = GetMesh()->GetAnimInstance();
 	}
 
-	CurrentStamina = MaxStamina;
-
-
 	if (StaminaWidget)
 	{
 		CreatedWidget = CreateWidget<UUserWidget>(GetWorld(), StaminaWidget);
@@ -91,7 +68,19 @@ void AActionCharacter::BeginPlay()
 			CreatedWidget->AddToViewport();
 		}
 	}
+	HealthBar = Cast<UProgressBar>(CreatedWidget->GetWidgetFromName(TEXT("HealthBar")));
 	StaminaBar = Cast<UProgressBar>(CreatedWidget->GetWidgetFromName(TEXT("StaminaBar")));
+
+	if (StatComponent)
+	{
+		FAutoRecoveryData Data = FAutoRecoveryData(
+			StaminaAutoRecoveryCoolTime,
+			AutoStaminaRecoveryInterval,
+			AutoStaminaRecoveryPerTick
+		);
+
+		StatComponent->InitializeStat(Data);
+	}
 }
 
 // Called every frame
@@ -99,22 +88,61 @@ void AActionCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (bRun)
-	{
-		if(GetMovementComponent()->Velocity.Size() >= WalkSpeed)
-		IStaminaInterface::Execute_ConsumeStamina(this, DeltaTime * 10);
-	}
-	
-	NonuseElapsed += DeltaTime;
+	ConsumeSprintStamina(DeltaTime);
 
-	if (NonuseElapsed >= 3)
-	{
-		if (!FMath::IsNearlyEqual(CurrentStamina,MaxStamina))
-			IStaminaInterface::Execute_RecoveryStamina(this, DeltaTime * 20);
-	}
+	auto Div = IStaminaInterface::Execute_GetCurrentStamina(StatComponent);
+	Div = Div / IStaminaInterface::Execute_GetMaxStamina(StatComponent);
 
-	auto Val = FMath::FInterpTo(StaminaBar->GetPercent(), CurrentStamina/MaxStamina, DeltaTime, 5);
+	auto Val = FMath::FInterpTo(StaminaBar->GetPercent(), Div, DeltaTime, 5);
 	StaminaBar->SetPercent(Val);
+
+	Div = IHealthInterface::Execute_GetCurrentHealth(StatComponent);
+	Div = Div / IHealthInterface::Execute_GetMaxHealth(StatComponent);
+
+	Val = FMath::FInterpTo(HealthBar->GetPercent(), Div, DeltaTime, 5);
+	HealthBar->SetPercent(Val);
+}
+
+
+
+void AActionCharacter::ConsumeSprintStamina(float DeltaTime)
+{
+
+	//UWorld* World = GetWorld();
+	//FTimerManager& TimerManager = World->GetTimerManager();
+	//TimerManager.SetTimer(
+	//	SprintStaminaConsumeTimer, //핸들
+	//	FTimerDelegate::CreateLambda(
+	//		[this]()
+	//		{
+	//			bool Condition = bRun
+	//				&& GetMovementComponent()->Velocity.Size() >= WalkSpeed
+	//				&& !AnimInstance->IsAnyMontagePlaying();
+	//			if (Condition)
+	//			{
+	//				if (!IStaminaInterface::Execute_ConsumeStamina(this, 0.1 * SprintStaminaUsagePerSec))
+	//				{
+	//					OnSprintEnd();
+	//				}
+	//			}
+	//		}
+	//	),
+	//	0.1f,// 얼마 뒤에 (3초 뒤에)
+	//	true// 반복 여부
+	//);
+	
+	//달리는 상태 + 이동속도가 걷기보다 빠르면 + 몽타주 재생중이 아니면
+	bool Condition = bRun
+		&& GetMovementComponent()->Velocity.Size() >= WalkSpeed
+		&& !AnimInstance->IsAnyMontagePlaying();
+
+	if (Condition)
+	{
+		if (!IStaminaInterface::Execute_ConsumeStamina(StatComponent, DeltaTime * SprintStaminaUsagePerSec))
+		{
+			OnSprintEnd();
+		}
+	}
 }
 
 // Called to bind functionality to input
@@ -170,7 +198,7 @@ void AActionCharacter::OnMoveAction(const FInputActionValue& Value)
 
 void AActionCharacter::OnSprintStartAction(const FInputActionValue& Value)
 {
-	if (FMath::IsNearlyZero(CurrentStamina)) return;
+	if (FMath::IsNearlyZero(IStaminaInterface::Execute_GetCurrentStamina(StatComponent))) return;
 	GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
 }
 
@@ -183,12 +211,19 @@ void AActionCharacter::OnSprintStart()
 {
 	GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
 	bRun = true;
+
+	// 타이머 활용하는 경우
+	//ConsumeSprintStamina(0.0);
 }
 
 void AActionCharacter::OnSprintEnd()
 {
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 	bRun = false;
+
+	UWorld* World = GetWorld();
+	FTimerManager& TimerManager = World->GetTimerManager();
+	//TimerManager.ClearTimer(SprintStaminaConsumeTimer);
 }
 
 // play montage example
@@ -196,15 +231,16 @@ void AActionCharacter::OnRollAction(const FInputActionValue& Value)
 {
 	if (!RollMontage) return;
 
-	// 스테미너 모자라면 못구름
-	if (IStaminaInterface::Execute_GetCurrentStamina(this) < RollStaminaUsage)  return;
-
 	if (!AnimInstance)
 	{
 		AnimInstance = GetMesh()->GetAnimInstance();
 	}
 
-	// 다른 몽타주가 재생중이면 스킵
+
+	// 스테미너 모자라면 못구름
+	if (IStaminaInterface::Execute_GetCurrentStamina(StatComponent) < RollStaminaUsage)  return;
+
+	//다른 몽타주가 재생중이면 스킵
 	if (!AnimInstance->IsAnyMontagePlaying())
 	{
 		// 구르기 직전에 구를 방향으로 돌리기
@@ -221,7 +257,7 @@ void AActionCharacter::OnRollAction(const FInputActionValue& Value)
 		}
 
 		PlayAnimMontage(RollMontage);
-		IStaminaInterface::Execute_ConsumeStamina(this, RollStaminaUsage);
+		IStaminaInterface::Execute_ConsumeStamina(StatComponent, RollStaminaUsage);
 	}
 }
 

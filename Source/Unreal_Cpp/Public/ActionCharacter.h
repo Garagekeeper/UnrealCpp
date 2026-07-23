@@ -5,26 +5,25 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputactionValue.h"
-#include "../Interface/StaminaInterface.h"
+#include "../Interface/StatHolder.h"
 #include "ActionCharacter.generated.h"
 
 class USpringArmComponent;
 class UCameraComponent;
 class UUserWidget;
 class UProgressBar;
+class UStatComponent;
 
 UCLASS()
-class UNREAL_CPP_API AActionCharacter : public ACharacter, public IStaminaInterface
+class UNREAL_CPP_API AActionCharacter : public ACharacter, public IStatHolder
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this character's properties
 	AActionCharacter();
-	virtual float GetCurrentStamina_Implementation() const override;
-	virtual bool ConsumeStamina_Implementation(float InAmount) override;
-	virtual void RecoveryStamina_Implementation(float InAmount) override;
-	virtual float GetMaxStamina_Implementation() const override;
+
+	virtual UStatComponent* GetStatComponent_Implementation() override;
 
 protected:
 	// Called when the game starts or when spawned
@@ -44,6 +43,10 @@ protected:
 	void OnSprintStart();
 	void OnSprintEnd();
 	void OnRollAction(const FInputActionValue& Value);
+
+private:
+	// Consume Stamina per sec when Sprinting
+	void ConsumeSprintStamina(float DeltaTime);
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -70,23 +73,40 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UProgressBar> StaminaBar;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UProgressBar> HealthBar;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float WalkSpeed = 600.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float SprintSpeed = 1200.0f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float CurrentStamina = 0.0f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float MaxStamina = 100.0f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category ="Stat|Stamina")
 	float RollStaminaUsage = 30.0f;
 
-	bool bRun = false;
-	float NonuseElapsed = 0;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stat|Stamina")
+	float SprintStaminaUsagePerSec = 5.0f;
+
+	//// DEPRECATED 스테미너 자동 회복 시 초당 회복량
+	//UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stat|Stamina")
+	//float AutoStaminaRecoveryPerSec = 10.0f;
+
+	// 스테미너가 자동 회복 될 때 타이머 틱당 회복량
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stat|Stamina")
+	float AutoStaminaRecoveryPerTick = 1.0f;
+
+	// 스테미너가 자동 회복 될 때 타이머 틱 주기
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stat|Stamina")
+	float AutoStaminaRecoveryInterval = 0.1f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stat|Stamina")
+	float StaminaAutoRecoveryCoolTime = 3.0f;
+
+	
+	
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -95,8 +115,13 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UCameraComponent> CameraComponent = nullptr;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UStatComponent> StatComponent = nullptr;
 
 private:
 	UPROPERTY()
 	TObjectPtr<UAnimInstance> AnimInstance = nullptr;
+
+	bool bRun = false;
+
 };
