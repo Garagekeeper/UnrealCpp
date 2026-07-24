@@ -57,6 +57,13 @@ bool UStatComponent::ConsumeStamina_Implementation(float InAmount)
 			StaminaRecoveryData.CoolTime
 		);
 
+		OnStaminaChange.Broadcast(CurrentStamina, MaxStamina);
+
+		if (FMath::IsNearlyZero(CurrentStamina, 0.1))
+		{
+			OnStaminaEmpty.Broadcast();
+		}
+
 	}
 
 	CurrentStamina = FMath::Clamp(CurrentStamina, 0, MaxStamina);
@@ -79,6 +86,13 @@ void UStatComponent::StaminaAutoRecoveryPerTick()
 void UStatComponent::RecoveryStamina_Implementation(float InAmount)
 {
 	CurrentStamina = FMath::Clamp(CurrentStamina + InAmount, 0, MaxStamina);
+
+	if (CurrentStamina >= MaxStamina)
+	{
+		UWorld* World = GetWorld();
+		FTimerManager& TimerManager = World->GetTimerManager();
+		TimerManager.ClearTimer(AutoRecorveryStaminaTimer);
+	}
 	//UE_LOG(LogTemp, Log, TEXT("현재 Stamina : %.1f"), CurrentStamina);
 }
 
@@ -92,21 +106,22 @@ float UStatComponent::GetCurrentHealth_Implementation() const
 	return CurrentHealth;
 }
 
-bool UStatComponent::ApplyDamage_Implementation(float InAmount)
+void UStatComponent::ApplyDamage_Implementation(float InAmount)
 {
-	bool bBelowZero = false;
 	CurrentHealth = CurrentHealth - InAmount;
+	if (CurrentHealth < 0.0f)
+	{
+		CurrentHealth = 0;
+		OnDeath.Broadcast();
+	}
 
-	if (CurrentHealth <= 0)
-		bBelowZero = true;
-
-	CurrentHealth = FMath::Clamp(CurrentHealth, 0, MaxHealth);
-	return false;
+	OnHealthChange.Broadcast(CurrentHealth, MaxHealth);
 }
 
 void UStatComponent::ApplyHeal_Implementation(float InAmount)
 {
-	CurrentHealth = FMath::Clamp(CurrentHealth + InAmount, 0, MaxHealth);
+	CurrentHealth = FMath::Min(CurrentHealth + InAmount, MaxHealth);
+	OnHealthChange.Broadcast(CurrentHealth, MaxHealth);
 }
 
 float UStatComponent::GetMaxHealth_Implementation() const

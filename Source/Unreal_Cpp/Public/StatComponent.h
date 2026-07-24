@@ -8,6 +8,9 @@
 #include "../Interface/HealthInterface.h"
 #include "StatComponent.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStatEmpty);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnStatChange, float, Current, float, Max);
+
 struct FAutoRecoveryData
 {
 	// 회복 발동까지 걸릴 시간
@@ -35,15 +38,29 @@ public:
 
 	void InitializeStat(FAutoRecoveryData& Indata);
 
+
+	// Interface
 	virtual float GetCurrentStamina_Implementation() const override;
 	virtual bool ConsumeStamina_Implementation(float InAmount) override;
 	virtual void RecoveryStamina_Implementation(float InAmount) override;
 	virtual float GetMaxStamina_Implementation() const override;
 
 	virtual float GetCurrentHealth_Implementation() const override;
-	virtual bool ApplyDamage_Implementation(float InAmount) override;
+	virtual void ApplyDamage_Implementation(float InAmount) override;
 	virtual void ApplyHeal_Implementation(float InAmount) override;
 	virtual float GetMaxHealth_Implementation() const override;
+
+	
+	// Delegate
+	UPROPERTY(BlueprintAssignable, Category = "Stat|Stamina"  )
+	FOnStatEmpty OnStaminaEmpty;
+	UPROPERTY(BlueprintAssignable, Category = "Stat|Health"  )
+	FOnStatEmpty OnDeath;
+	UPROPERTY(BlueprintAssignable, Category = "Stat|Stamina"  )
+	FOnStatChange OnStaminaChange;
+	UPROPERTY(BlueprintAssignable, Category = "Stat|Health"  )
+	FOnStatChange OnHealthChange;
+
 
 protected:
 	// Called when the game starts
@@ -60,17 +77,17 @@ private:
 
 protected:
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float CurrentStamina = 100.0f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float MaxStamina = 100.0f;
 
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float CurrentHealth = 100.0f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float MaxHealth = 100.0f;
 
 private:

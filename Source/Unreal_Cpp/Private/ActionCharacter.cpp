@@ -30,15 +30,19 @@ AActionCharacter::AActionCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	CameraSpringArmComponent->bUsePawnControlRotation = true;
 
-	static ConstructorHelpers::FClassFinder<UUserWidget> WidgetFinder(TEXT("/Game/Blueprints/Test/Test02/WBP_Stat.WBP_Stat_C"));
+	static ConstructorHelpers::FClassFinder<UUserWidget> WidgetFinder(TEXT("/Game/Blueprints/Test/Test06/WBP_Test06_Stat.WBP_Test06_Stat_C"));
 	if (WidgetFinder.Succeeded())
 	{
 		StaminaWidget = WidgetFinder.Class;
 	}
-
 }
 
-UStatComponent* AActionCharacter::GetStatComponent_Implementation()
+//UStatComponent* AActionCharacter::GetStatComponent_Implementation() const
+//{
+//	return StatComponent;
+//}
+
+UStatComponent* AActionCharacter::GetStatComponent() const
 {
 	return StatComponent;
 }
@@ -66,10 +70,11 @@ void AActionCharacter::BeginPlay()
 		if (CreatedWidget)
 		{
 			CreatedWidget->AddToViewport();
+			/*HealthBar = Cast<UProgressBar>(CreatedWidget->GetWidgetFromName(TEXT("HealthBar")));
+			StaminaBar = Cast<UProgressBar>(CreatedWidget->GetWidgetFromName(TEXT("StaminaBar")))*/;
 		}
 	}
-	HealthBar = Cast<UProgressBar>(CreatedWidget->GetWidgetFromName(TEXT("HealthBar")));
-	StaminaBar = Cast<UProgressBar>(CreatedWidget->GetWidgetFromName(TEXT("StaminaBar")));
+
 
 	if (StatComponent)
 	{
@@ -90,17 +95,17 @@ void AActionCharacter::Tick(float DeltaTime)
 
 	ConsumeSprintStamina(DeltaTime);
 
-	auto Div = IStaminaInterface::Execute_GetCurrentStamina(StatComponent);
-	Div = Div / IStaminaInterface::Execute_GetMaxStamina(StatComponent);
+	//auto Div = IStaminaInterface::Execute_GetCurrentStamina(StatComponent);
+	//Div = Div / IStaminaInterface::Execute_GetMaxStamina(StatComponent);
 
-	auto Val = FMath::FInterpTo(StaminaBar->GetPercent(), Div, DeltaTime, 5);
-	StaminaBar->SetPercent(Val);
+	//auto Val = FMath::FInterpTo(StaminaBar->GetPercent(), Div, DeltaTime, 5);
+	//StaminaBar->SetPercent(Val);
 
-	Div = IHealthInterface::Execute_GetCurrentHealth(StatComponent);
-	Div = Div / IHealthInterface::Execute_GetMaxHealth(StatComponent);
+	//Div = IHealthInterface::Execute_GetCurrentHealth(StatComponent);
+	//Div = Div / IHealthInterface::Execute_GetMaxHealth(StatComponent);
 
-	Val = FMath::FInterpTo(HealthBar->GetPercent(), Div, DeltaTime, 5);
-	HealthBar->SetPercent(Val);
+	//Val = FMath::FInterpTo(HealthBar->GetPercent(), Div, DeltaTime, 5);
+	//HealthBar->SetPercent(Val);
 }
 
 

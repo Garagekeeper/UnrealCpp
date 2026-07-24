@@ -23,7 +23,8 @@ public:
 	// Sets default values for this character's properties
 	AActionCharacter();
 
-	virtual UStatComponent* GetStatComponent_Implementation() override;
+	//virtual UStatComponent* GetStatComponent_Implementation() const override;
+	virtual UStatComponent* GetStatComponent() const override;
 
 protected:
 	// Called when the game starts or when spawned

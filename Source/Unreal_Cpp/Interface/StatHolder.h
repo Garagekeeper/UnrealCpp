@@ -24,6 +24,8 @@ class UNREAL_CPP_API IStatHolder
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Stat")
-	UStatComponent* GetStatComponent();
+	//UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Stat")
+	//UStatComponent* GetStatComponent() const;
+
+	virtual UStatComponent* GetStatComponent() const = 0;
 };

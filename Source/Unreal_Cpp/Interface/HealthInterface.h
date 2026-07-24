@@ -27,7 +27,7 @@ public:
 	float GetCurrentHealth() const;
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Health")
-	bool ApplyDamage(float InAmount);
+	void ApplyDamage(float InAmount);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Health")
 	void ApplyHeal(float InAmount);

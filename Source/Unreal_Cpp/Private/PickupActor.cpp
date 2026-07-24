@@ -44,10 +44,12 @@ void APickupActor::NotifyActorBeginOverlap(AActor* OtherActor)
 	//2. 권장하는 방법(Bp에서 상속 받은 것도 체크 가능)
 	//bool bImplements = OtherActor->Implements<UStaminaInterface>();
 
-	if (OtherActor && OtherActor->Implements<UStatHolder>())
+	//if (OtherActor && OtherActor->Implements<UStatHolder>())
+	IStatHolder* Stat = Cast<IStatHolder>(OtherActor);
+	if (OtherActor && Stat)
 	{
-		
-		UStatComponent* Component = IStatHolder::Execute_GetStatComponent(OtherActor);
+		UStatComponent* Component = Stat->GetStatComponent();
+		//UStatComponent* Component = IStatHolder::Execute_GetStatComponent(OtherActor);
 		if (Stamina > 0)
 		{
 			IStaminaInterface::Execute_RecoveryStamina(Component, Stamina);
