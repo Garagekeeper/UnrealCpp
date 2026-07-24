@@ -19,6 +19,9 @@ void UStatBarWidget::NativeConstruct()
 	{
 		Holder->GetStatComponent()->OnStaminaChange.AddDynamic(StaminBar, &UBarWidget::UpdateBar);
 		Holder->GetStatComponent()->OnHealthChange.AddDynamic(HpBar, &UBarWidget::UpdateBar);
+		//FScriptDelegate Test;
+		//Test.BindUFunction(HpBar, FName("UBarWidget::UpdateBar"));
+		//Holder->GetStatComponent()->OnStaminaChange.Add(Test);
 	}
 
 }
