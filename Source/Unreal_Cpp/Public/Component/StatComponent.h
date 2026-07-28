@@ -38,7 +38,6 @@ public:
 
 	void InitializeStat(FAutoRecoveryData& Indata);
 
-
 	// Interface
 	virtual float GetCurrentStamina_Implementation() const override;
 	virtual bool ConsumeStamina_Implementation(float InAmount) override;

@@ -6,17 +6,16 @@
 #include "GameFramework/Character.h"
 #include "InputactionValue.h"
 #include "Interface/StatHolder.h"
+#include "Interface/WeaponUserInterface.h"
 #include "ActionCharacter.generated.h"
 
 class USpringArmComponent;
 class UCameraComponent;
-class UUserWidget;
-class UProgressBar;
 class UStatComponent;
 class UAnimNotifyState_SectionJump;
 
 UCLASS()
-class UNREAL_CPP_API AActionCharacter : public ACharacter, public IStatHolder
+class UNREAL_CPP_API AActionCharacter : public ACharacter, public IStatHolder, public IWeaponUserInterface
 {
 	GENERATED_BODY()
 
@@ -26,9 +25,21 @@ public:
 
 	//virtual UStatComponent* GetStatComponent_Implementation() const override;
 	virtual UStatComponent* GetStatComponent() const override;
+	
+	virtual void OnWeaponAttackState(bool bEnable) override;
 
 	void SetSectionJumpNotify(UAnimNotifyState_SectionJump* InSectionJumpNotify);
 	void UpdateAttackState(bool Inval);
+
+	virtual FOnWeaponAttackStateChanged& GetWeaponAttackStateChangedDelegate() override
+	{
+		return OnWeaponAttackStateChaned;
+	};
+
+	virtual void SetWeapon(AWeaponActor* InWeapon) override
+	{
+		
+	}
 
 protected:
 	// Called when the game starts or when spawned
@@ -49,12 +60,15 @@ protected:
 	void OnSprintEnd();
 	void OnAttackAction();
 	void OnRollAction(const FInputActionValue& Value);
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser) override;
 
 private:
 	// Consume Stamina per sec when Sprinting
 	void ConsumeSprintStamina(float DeltaTime);
 	void SectionJumpForCombo();
 	
+public:
+	FOnWeaponAttackStateChanged OnWeaponAttackStateChaned;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -78,17 +92,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UAnimMontage> AttackMontage;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<UUserWidget> StaminaWidget;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<UUserWidget> CreatedWidget;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<UProgressBar> StaminaBar;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<UProgressBar> HealthBar;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Move")
 	float WalkSpeed = 600.0f;

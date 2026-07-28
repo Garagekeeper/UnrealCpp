@@ -6,6 +6,7 @@
 #include "GameFrameWork/SpringArmComponent.h"
 #include "GameFrameWork/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
+#include "component/StatComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
@@ -35,6 +36,11 @@ AActionCharacter::AActionCharacter()
 UStatComponent* AActionCharacter::GetStatComponent() const
 {
 	return StatComponent;
+}
+
+void AActionCharacter::OnWeaponAttackState(bool bEnable)
+{
+	OnWeaponAttackStateChaned.ExecuteIfBound(bEnable);
 }
 
 void AActionCharacter::SetSectionJumpNotify(UAnimNotifyState_SectionJump* InSectionJumpNotify)
@@ -301,6 +307,12 @@ void AActionCharacter::OnRollAction(const FInputActionValue& Value)
 		PlayAnimMontage(RollMontage);
 		IStaminaInterface::Execute_ConsumeStamina(StatComponent, RollStaminaUsage);
 	}
+}
+
+float AActionCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	IHealthInterface::Execute_ApplyDamage(StatComponent, DamageAmount);
+	return IHealthInterface::Execute_GetCurrentHealth(StatComponent);
 }
 
 

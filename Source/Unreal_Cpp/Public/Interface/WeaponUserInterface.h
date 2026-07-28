@@ -1,0 +1,34 @@
+
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "UObject/Interface.h"
+
+#include "WeaponUserInterface.generated.h"
+
+class AWeaponActor;
+
+DECLARE_DYNAMIC_DELEGATE_OneParam(FOnWeaponAttackStateChanged, bool, bEnable);
+
+// This class does not need to be modified.
+UINTERFACE(MinimalAPI)
+class UWeaponUserInterface : public UInterface
+{
+	GENERATED_BODY()
+};
+
+/**
+ * 
+ */
+class UNREAL_CPP_API IWeaponUserInterface
+{
+	GENERATED_BODY()
+
+	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
+public:
+	virtual void OnWeaponAttackState(bool bEnable) = 0;
+	virtual FOnWeaponAttackStateChanged& GetWeaponAttackStateChangedDelegate() = 0;
+	virtual void SetWeapon(AWeaponActor* Weapon) = 0;
+	
+};

@@ -8,6 +8,7 @@
 
 class USphereComponent;
 class UStaticMeshComponent;
+class AWeaponActor;
 
 UCLASS()
 class UNREAL_CPP_API APickupActor : public AActor
@@ -40,5 +41,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Health = 30.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<AWeaponActor> WeaponClass;
 
 };

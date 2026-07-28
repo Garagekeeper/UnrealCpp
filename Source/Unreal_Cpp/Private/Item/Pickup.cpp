@@ -5,8 +5,10 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/SphereComponent.h"
 #include "Interface/StatHolder.h"
+#include "Interface/WeaponUserInterface.h"
 #include "Component/StatComponent.h"
-
+#include "Weapon/WeaponActor.h"
+#include "Unreal_Cpp/Unreal_Cpp.h"
 
 // Sets default values
 APickupActor::APickupActor()
@@ -68,6 +70,16 @@ void APickupActor::NotifyActorBeginOverlap(AActor* OtherActor)
 			IHealthInterface::Execute_ApplyDamage(Component, -Health);
 		}
 	}
+
+
+	IWeaponUserInterface* User = Cast<IWeaponUserInterface>(OtherActor);
+	if (WeaponClass && User)
+	{
+		AWeaponActor* Weapon= GetWorld()->SpawnActor<AWeaponActor>(WeaponClass);
+		Weapon->OnEquipped(OtherActor, ECC_Enemy);
+		this->Destroy();
+	}
+	
 
 }
 
