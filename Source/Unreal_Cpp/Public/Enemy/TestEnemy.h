@@ -29,10 +29,6 @@ public:
 		return OnWeaponAttackStateChaned;
 	};
 
-	virtual void SetWeapon(AWeaponActor* InWeapon) override
-	{
-		Weapon = InWeapon;
-	}
 
 protected:
 	// Called when the game starts or when spawned

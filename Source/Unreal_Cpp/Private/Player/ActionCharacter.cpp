@@ -8,6 +8,11 @@
 #include "Camera/CameraComponent.h"
 #include "component/StatComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/GameplayStatics.h"
+#include "AnimNotify/AnimNotifyState_SectionJump.h"
+#include "Data/WeaponDataAsset.h"
+#include "Weapon/WeaponActor.h"
+#include "Unreal_Cpp/Unreal_Cpp.h"
 
 // Sets default values
 AActionCharacter::AActionCharacter()
@@ -27,6 +32,36 @@ AActionCharacter::AActionCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	CameraSpringArmComponent->bUsePawnControlRotation = true;
 }
+
+void AActionCharacter::EquipWeapon_Implementation(UWeaponDataAsset* InWeaponData)
+{
+	// 이전 무기 해제
+	if (CurrentWeapon.IsValid())
+	{
+		CurrentWeapon.Get()->DropWeapon();
+		CurrentWeapon = nullptr;
+	}
+
+	currentWeaponData = InWeaponData;
+	if (!InWeaponData->IsLoaded())
+	{
+		UWeaponDataAsset* Requested = InWeaponData;
+		InWeaponData->RequestDataLoad(
+			//로딩이 완료 되었을 때 실행되는 람다
+			FStreamableDelegate::CreateWeakLambda(this, [this, Requested]() {
+
+				if (currentWeaponData == Requested)
+						SpawnWeaponActor();
+			})
+		);
+	}
+	else
+	{
+		SpawnWeaponActor();
+	}
+
+}
+
 
 //UStatComponent* AActionCharacter::GetStatComponent_Implementation() const
 //{
@@ -160,6 +195,28 @@ void AActionCharacter::SectionJumpForCombo()
 
 }
 
+void AActionCharacter::SpawnWeaponActor()
+{
+	if (!currentWeaponData)
+	{
+		return;
+	}
+	
+	CurrentWeapon = GetWorld()->SpawnActorDeferred<AWeaponActor>( // 생성 시작
+		AWeaponActor::StaticClass(),
+		FTransform::Identity,
+		this,
+		this);
+
+	if (CurrentWeapon.IsValid())
+	{
+		CurrentWeapon->InitalizeWeapon(currentWeaponData);
+		// 생성이 끝남 (스폰 완료, BeginPlay까지 진행)
+		UGameplayStatics::FinishSpawningActor(CurrentWeapon.Get(), FTransform::Identity);
+	}
+	CurrentWeapon->OnEquippedToTarget(this, ECC_Enemy);
+}
+
 void AActionCharacter::UpdateAttackState(bool Inval)
 {
 	bCanAttack = Inval;
@@ -253,6 +310,10 @@ void AActionCharacter::OnAttackAction()
 	{
 		if (!AnimInstance->IsAnyMontagePlaying())
 		{
+			if (!GetLastMovementInputVector().IsNearlyZero())
+			{
+				SetActorRotation(GetLastMovementInputVector().Rotation());
+			}
 			PlayAnimMontage(AttackMontage);
 			IStaminaInterface::Execute_ConsumeStamina(StatComponent, AttackStaminaUsage);
 			bCanAttack = false;
@@ -311,8 +372,12 @@ void AActionCharacter::OnRollAction(const FInputActionValue& Value)
 
 float AActionCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	IHealthInterface::Execute_ApplyDamage(StatComponent, DamageAmount);
-	return IHealthInterface::Execute_GetCurrentHealth(StatComponent);
+	float Damage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	if (UStatComponent* StatComp = GetStatComponent())
+	{
+		IHealthInterface::Execute_ApplyDamage(StatComp, Damage);
+	}
+	return Damage;
 }
 
 

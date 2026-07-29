@@ -5,6 +5,7 @@
 #include "Unreal_Cpp/Unreal_Cpp.h"
 #include "Interface/WeaponUserInterface.h"
 #include "Kismet/GameplayStatics.h"
+#include "Data/WeaponDataAsset.h"
 
 // Sets default values
 AWeaponActor::AWeaponActor()
@@ -74,7 +75,7 @@ void AWeaponActor::OnEquipped(AActor* InOwner, ECollisionChannel TargetChanel)
 		if (WeaponUser)
 		{
 			WeaponUser->GetWeaponAttackStateChangedDelegate().BindUFunction(this, FName("AttackEnable"));
-			WeaponUser->SetWeapon(this);
+			//WeaponUser->SetWeapon(this);
 		}
 
 		if (TargetChanel == ECC_Enemy)
@@ -92,10 +93,50 @@ void AWeaponActor::OnEquipped(AActor* InOwner, ECollisionChannel TargetChanel)
 	
 }
 
+void AWeaponActor::OnEquippedToTarget(AActor* InOwner, ECollisionChannel TargetChanel)
+{
+	OnEquipped(InOwner, TargetChanel);
+}
+
+void AWeaponActor::InitalizeWeapon(UWeaponDataAsset* InData)
+{
+	WeaponData = InData;
+	Mesh->SetStaticMesh(WeaponData->Mesh.Get());
+
+	HitArea->SetCapsuleHalfHeight(WeaponData->hitAreaHalfheight, false);								// 뒤의 bool은 크기 변경시 오버렙 바로 갱신할거냐
+	HitArea->SetCapsuleRadius(WeaponData->hitAreaRad, false);
+
+	HitArea->SetRelativeLocation(WeaponData->LocationOffset);
+
+	AttachSocketName = WeaponData->AttachSocketName;
+	AttackDamage = WeaponData->AttackDamage;
+
+	// 피봇 조정
+}
+
+void AWeaponActor::DropWeapon()
+{
+	FDetachmentTransformRules DetachRues(EDetachmentRule::KeepWorld, true);
+	DetachFromActor(DetachRues);
+
+	HitArea->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	Mesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	Mesh->SetCollisionResponseToAllChannels(ECR_Block);
+	Mesh->SetCollisionResponseToChannel(ECC_Visibility,ECR_Ignore);
+	Mesh->SetCollisionResponseToChannel(ECC_Camera,ECR_Ignore);
+	Mesh->SetCollisionResponseToChannel(ECC_Player, ECR_Ignore);
+	Mesh->SetSimulatePhysics(true);
+
+	Mesh->AddImpulse(GetActorUpVector() * 500, NAME_None, true);
+
+}
+
+
 void AWeaponActor::OnHitAreaBeginOverlap(UPrimitiveComponent* InOverlappedComponent, AActor* InOtherActor, UPrimitiveComponent* InOtherComp, int32 InOtherBodyIndex, bool bFromSweep, const FHitResult& InSweepResult)
 {
 	//UE_LOG(LogTemp, Log, TEXT("오버랩 된 대상 : %s"), *InOtherActor->GetName());
-	float Remain = UGameplayStatics::ApplyDamage(InOtherActor, AttackDamage, OwnerCharacter->GetController(), Cast<AActor>(OwnerCharacter), nullptr);
+	float Remain = UGameplayStatics::ApplyDamage(InOtherActor, AttackDamage, OwnerCharacter->GetController(), this, nullptr);
 	UE_LOG(LogTemp, Log, TEXT("대상: %s, 남은 체력: %f"), *InOtherActor->GetName(), Remain);
 }
 

@@ -76,7 +76,7 @@ void APickupActor::NotifyActorBeginOverlap(AActor* OtherActor)
 	if (WeaponClass && User)
 	{
 		AWeaponActor* Weapon= GetWorld()->SpawnActor<AWeaponActor>(WeaponClass);
-		Weapon->OnEquipped(OtherActor, ECC_Enemy);
+		Weapon->OnEquippedToTarget(OtherActor, ECC_Enemy);
 		this->Destroy();
 	}
 	

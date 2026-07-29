@@ -13,6 +13,8 @@ class USpringArmComponent;
 class UCameraComponent;
 class UStatComponent;
 class UAnimNotifyState_SectionJump;
+class AWeaponActor;
+class UWeaponDataAsset;
 
 UCLASS()
 class UNREAL_CPP_API AActionCharacter : public ACharacter, public IStatHolder, public IWeaponUserInterface
@@ -23,23 +25,22 @@ public:
 	// Sets default values for this character's properties
 	AActionCharacter();
 
-	//virtual UStatComponent* GetStatComponent_Implementation() const override;
+	virtual void EquipWeapon_Implementation(UWeaponDataAsset* InWeaponData) override;
+
+	// Gettet Setter
+	// virtual UStatComponent* GetStatComponent_Implementation() const override;
 	virtual UStatComponent* GetStatComponent() const override;
-	
-	virtual void OnWeaponAttackState(bool bEnable) override;
-
-	void SetSectionJumpNotify(UAnimNotifyState_SectionJump* InSectionJumpNotify);
-	void UpdateAttackState(bool Inval);
-
 	virtual FOnWeaponAttackStateChanged& GetWeaponAttackStateChangedDelegate() override
 	{
 		return OnWeaponAttackStateChaned;
 	};
 
-	virtual void SetWeapon(AWeaponActor* InWeapon) override
-	{
-		
-	}
+
+	// 이벤트 함수
+	virtual void OnWeaponAttackState(bool bEnable) override;
+
+	void SetSectionJumpNotify(UAnimNotifyState_SectionJump* InSectionJumpNotify);
+	void UpdateAttackState(bool Inval);
 
 protected:
 	// Called when the game starts or when spawned
@@ -66,6 +67,7 @@ private:
 	// Consume Stamina per sec when Sprinting
 	void ConsumeSprintStamina(float DeltaTime);
 	void SectionJumpForCombo();
+	void SpawnWeaponActor();
 	
 public:
 	FOnWeaponAttackStateChanged OnWeaponAttackStateChaned;
@@ -127,7 +129,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stat|Attack")
 	float AttackStaminaUsage = 0.0f;
 
-	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
+	TWeakObjectPtr<AWeaponActor> CurrentWeapon = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
+	TObjectPtr<UWeaponDataAsset> currentWeaponData = nullptr;
 	
 
 protected:

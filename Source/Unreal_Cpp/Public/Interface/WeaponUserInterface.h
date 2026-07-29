@@ -4,10 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
-
 #include "WeaponUserInterface.generated.h"
-
-class AWeaponActor;
 
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnWeaponAttackStateChanged, bool, bEnable);
 
@@ -29,6 +26,8 @@ class UNREAL_CPP_API IWeaponUserInterface
 public:
 	virtual void OnWeaponAttackState(bool bEnable) = 0;
 	virtual FOnWeaponAttackStateChanged& GetWeaponAttackStateChangedDelegate() = 0;
-	virtual void SetWeapon(AWeaponActor* Weapon) = 0;
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void EquipWeapon(UWeaponDataAsset* InWeaponData);
 	
 };

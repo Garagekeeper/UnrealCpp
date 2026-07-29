@@ -44,8 +44,8 @@ float ATestEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 	IHealthInterface::Execute_ApplyDamage(StatComponent, DamageAmount);
 	if (IHealthInterface::Execute_GetCurrentHealth(StatComponent) <= 0)
 	{
-		Weapon->Destroy();
-		this->Destroy();
+		//Weapon->Destroy();
+		Destroy();
 	}
 	return IHealthInterface::Execute_GetCurrentHealth(StatComponent);
 }
