@@ -1,5 +1,3 @@
-
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -10,6 +8,7 @@
 
 class AWeaponActor;
 class USphereComponent;
+
 /**
  * 
  */
@@ -38,37 +37,44 @@ protected:
 		const FHitResult& InSweepResult
 	);
 
+	virtual void MoveToPlayerWithTimer();
+	virtual void MoveToplayerWithTimerDone();
+
 private:
-	void MoveupDown(float InVal);
-	void MoveToPlayer(float InVal);
+	void MoveToPlayerWithTick();
+	bool IsAssetReady() const;
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<UWeaponDataAsset> WeaponData = nullptr;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USphereComponent> PickSphereCollision = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UCurveFloat* MyCurve;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup Transform")
+	TObjectPtr<UCurveFloat> PosCurve;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UCurveFloat* PosCurve;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup Transform")
+	TObjectPtr<UCurveFloat> HeightCurve;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UCurveFloat* HeightCurve;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup Transform")
+	TObjectPtr<UCurveFloat> ScaleCurve;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Data")
+	TObjectPtr<UWeaponDataAsset> WeaponData = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UCurveFloat* SclaeCurve;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float MoveWidth = 100.0f;
+
+
+
 
 private:
-	float Elapsed = 0;
-	FVector InitPos;
-	bool bFollow = false;
-	AActor* Target;
+	TWeakObjectPtr<AActor> Target;
+	FTimerHandle PickupEffectTimerHandle;
+	
+
+	
 	float popHeight = 50.0f;
+
+	const float TimerInterval = 0.02f;
+	float ElapsedForTimer = 0;
+	float PickUpEffectDuration = 0.5f;
 	
 };

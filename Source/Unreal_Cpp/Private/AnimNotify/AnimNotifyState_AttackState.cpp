@@ -2,6 +2,7 @@
 
 
 #include "AnimNotify/AnimNotifyState_AttackState.h"
+#include "player/ActionCharacter.h"
 
 
 void UAnimNotifyState_AttackState::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)

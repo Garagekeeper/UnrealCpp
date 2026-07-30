@@ -65,7 +65,16 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UWeaponDataAsset> WeaponData;
 
+	// 드랍 직후에 플레이어와 물리 상호작용이 안되는 시간
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float PhysicsDelay = 0.8f;
+
+	// 드랍 후 사라질때 까지의 시간
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float DropLifeSpan = 10.0f;
+
 private:
 	// 이 무기를 장착한 캐릭터
 	TWeakObjectPtr<ACharacter> OwnerCharacter;
+	FTimerHandle PhysicsDelayTimerHandle;
 };

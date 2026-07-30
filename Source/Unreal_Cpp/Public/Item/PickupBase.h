@@ -8,6 +8,7 @@
 
 class USphereComponent;
 class UStaticMeshComponent;
+class UNiagaraComponent;
 
 UCLASS()
 class UNREAL_CPP_API APickupBase : public AActor
@@ -26,7 +27,17 @@ protected:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	virtual void OnPickUp(AActor* InActor);
+	virtual void MoveupDownAndSpinWithTick();
 
+private:
+	bool IsCurveReady() const;
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup Transform")
+	TObjectPtr<UCurveFloat> UpDownCurve;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup Transform")
+	TObjectPtr<UCurveFloat> SpinCurve;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -36,6 +47,24 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UStaticMeshComponent> Mesh = nullptr;
 
-	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UNiagaraComponent> NiagaraComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup Transform")
+	float MoveWidth = 30.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float UpDownDuration = 5;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Data")
+	FVector OffsetInitBP = FVector(0.0f, 0, 20);
+
+	FVector InitPos;
+	bool bFollow = false;
+	float Elapsed = 0;
+
+
+
 	
 };

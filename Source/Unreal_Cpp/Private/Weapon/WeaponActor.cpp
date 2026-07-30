@@ -32,7 +32,6 @@ AWeaponActor::AWeaponActor()
 	HitArea->SetCollisionObjectType(ECC_Weapon);
 	HitArea->SetCollisionResponseToAllChannels(ECR_Ignore);
 	HitArea->SetCollisionResponseToChannel(ECC_Enemy, ECR_Overlap);
-	HitArea->SetRelativeLocation(FVector(0.0f, 0.0f, 61.0f));
 }
 
 void AWeaponActor::AttackEnable(bool bEnable)
@@ -57,6 +56,8 @@ void AWeaponActor::BeginPlay()
 
 void AWeaponActor::OnEquipped(AActor* InOwner, ECollisionChannel TargetChanel)
 {
+	if (!WeaponData) return;
+
 	SetOwner(InOwner);
 	OwnerCharacter = Cast<ACharacter>(InOwner);
 	FAttachmentTransformRules AttachRules(
@@ -69,6 +70,8 @@ void AWeaponActor::OnEquipped(AActor* InOwner, ECollisionChannel TargetChanel)
 	if (OwnerCharacter.IsValid())
 	{
 		AttachToComponent(OwnerCharacter->GetMesh(), AttachRules, AttachSocketName);
+		HitArea->SetRelativeLocation(WeaponData->LocationOffset);
+		
 		HitArea->IgnoreActorWhenMoving(OwnerCharacter.Get(), true);// 자기 자신이랑은 충돌 안하게 (만약을 대비)
 
 		IWeaponUserInterface* WeaponUser = Cast<IWeaponUserInterface>(OwnerCharacter);
@@ -111,11 +114,13 @@ void AWeaponActor::InitalizeWeapon(UWeaponDataAsset* InData)
 	AttachSocketName = WeaponData->AttachSocketName;
 	AttackDamage = WeaponData->AttackDamage;
 
-	// 피봇 조정
+
+
 }
 
 void AWeaponActor::DropWeapon()
 {
+
 	FDetachmentTransformRules DetachRues(EDetachmentRule::KeepWorld, true);
 	DetachFromActor(DetachRues);
 
@@ -128,13 +133,44 @@ void AWeaponActor::DropWeapon()
 	Mesh->SetCollisionResponseToChannel(ECC_Player, ECR_Ignore);
 	Mesh->SetSimulatePhysics(true);
 
-	Mesh->AddImpulse(GetActorUpVector() * 500, NAME_None, true);
+	FTimerManager& TimerManager = GetWorldTimerManager();
+	TimerManager.SetTimer(
+		PhysicsDelayTimerHandle,
+		FTimerDelegate::CreateLambda(
+			[this]()
+			{
+				if (Mesh)
+				{
+					Mesh->SetCollisionResponseToChannel(ECC_Player, ECR_Block);
+				}
+			}
+		),
+		PhysicsDelay,
+		false
+	);
 
+
+	// 뒤로 던지기
+	FVector BackDir = -OwnerCharacter->GetActorForwardVector();
+	FVector ThrowDir = BackDir * 500.0f + FVector::UpVector * 300.0f;
+	FVector AngularImpulse = FVector(
+		FMath::RandRange(-200, 200)
+	) + GetActorForwardVector()*1000;
+	Mesh->AddImpulse(ThrowDir, NAME_None, true);
+	Mesh->AddAngularImpulseInDegrees(AngularImpulse, NAME_None, true);
+
+	// 삭제 시간 걸어주기
+	SetLifeSpan(DropLifeSpan);
+
+	// 오너 캐릭터 밀어주기
+	OwnerCharacter = nullptr;
 }
 
 
 void AWeaponActor::OnHitAreaBeginOverlap(UPrimitiveComponent* InOverlappedComponent, AActor* InOtherActor, UPrimitiveComponent* InOtherComp, int32 InOtherBodyIndex, bool bFromSweep, const FHitResult& InSweepResult)
 {
+	if (!WeaponData) return;
+
 	//UE_LOG(LogTemp, Log, TEXT("오버랩 된 대상 : %s"), *InOtherActor->GetName());
 	float Remain = UGameplayStatics::ApplyDamage(InOtherActor, AttackDamage, OwnerCharacter->GetController(), this, nullptr);
 	UE_LOG(LogTemp, Log, TEXT("대상: %s, 남은 체력: %f"), *InOtherActor->GetName(), Remain);

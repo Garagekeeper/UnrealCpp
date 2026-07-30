@@ -6,6 +6,7 @@
 #include "Unreal_Cpp/Unreal_Cpp.h"
 #include "Interface/WeaponUserInterface.h"
 #include "Components/SphereComponent.h"
+#include "NiagaraComponent.h"
 
 APickupWeapon::APickupWeapon()
 {
@@ -28,6 +29,7 @@ void APickupWeapon::OnPickUp(AActor* InTarget)
 	//IWeaponUserInterface::Execute_
 
 	Target = InTarget;
+	InitPos = Mesh->GetComponentLocation();
 	DetectPickUp();
 }
 
@@ -41,60 +43,119 @@ void APickupWeapon::OnConstruction(const FTransform& Transform)
 		if (UStaticMesh* StaticMeshData = WeaponData->Mesh.LoadSynchronous())
 		{
 			Mesh->SetStaticMesh(StaticMeshData);
+			Mesh->SetRelativeLocation(OffsetInitBP + WeaponData->LocationOffset);
 		}
 	}
 }
 
 void APickupWeapon::Tick(float DeltaTime)
 {
+	// 내 풀이
 	Super::Tick(DeltaTime);
 	Elapsed += DeltaTime;
 
 	if (bFollow)
 	{
-		MoveToPlayer(Elapsed);
-	}
-	else
-	{
-		MoveupDown(Elapsed);
+		//MoveToPlayerWithTick();
 	}
 }
 
 void APickupWeapon::BeginPlay()
 {
 	Super::BeginPlay();
-	InitPos = GetActorLocation();
 	PickSphereCollision->OnComponentBeginOverlap.AddDynamic(this, &APickupWeapon::OnHitAreaBeginOverlap);
 
 }
 
 void APickupWeapon::DetectPickUp()
 {
+	// 내 풀이
 	bFollow = true;
-	Elapsed = 0.0f;
-	DetectSphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	//Elapsed = 0.0f;
+	//DetectSphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	NiagaraComponent->Deactivate();
+	// 타이머 기반 풀이
+	
+	if (IsAssetReady())
+	{
+		// 해당 타이머가 작동중dlaus 종료
+		if (GetWorldTimerManager().IsTimerActive(PickupEffectTimerHandle)) return;
+
+		DetectSphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		ElapsedForTimer = 0.0f;
+		GetWorldTimerManager().SetTimer(
+			PickupEffectTimerHandle,
+			this,
+			&APickupWeapon::MoveToPlayerWithTimer,
+			TimerInterval,
+			true
+		);
+	}
+	else
+	{
+		MoveToplayerWithTimerDone();
+	}
+
 }
 
-void APickupWeapon::MoveupDown(float InVal)
+void APickupWeapon::MoveToPlayerWithTick()
 {
-	if (Elapsed > 3)
-		Elapsed -= 3.0f;
-	float Dz = MyCurve->GetFloatValue(Elapsed) * MoveWidth;
-	SetActorLocation(InitPos + FVector(0, 0, Dz));
-}
-
-void APickupWeapon::MoveToPlayer(float InVal)
-{
-	FVector NewVec = FMath::Lerp(GetActorLocation(), Target->GetActorLocation(), PosCurve->GetFloatValue(Elapsed));
-	float ScaleVal = SclaeCurve->GetFloatValue(Elapsed);
+	FVector NewVec = FMath::Lerp(InitPos, Target.Get()->GetActorLocation(), PosCurve->GetFloatValue(Elapsed));
+	float ScaleVal = ScaleCurve->GetFloatValue(Elapsed);
 	SetActorScale3D(FVector(ScaleVal));
 	NewVec = FVector(NewVec.X, NewVec.Y, NewVec.Z + HeightCurve->GetFloatValue(Elapsed));
 	SetActorLocation(NewVec);
 }
 
+bool APickupWeapon::IsAssetReady() const
+{
+	return UpDownCurve != nullptr && PosCurve != nullptr && HeightCurve != nullptr && ScaleCurve != nullptr;
+}
+
+void APickupWeapon::MoveToPlayerWithTimer()
+{
+	if (!Target.IsValid())
+	{
+		MoveToplayerWithTimerDone();
+		return;
+	}
+
+	ElapsedForTimer += TimerInterval;
+
+	float Progress = ElapsedForTimer / PickUpEffectDuration;
+	if (Progress >= 1.0f)
+	{
+		MoveToplayerWithTimerDone();
+	}
+
+	FVector NewVec = FMath::Lerp(GetActorLocation(), Target.Get()->GetActorLocation(), PosCurve->GetFloatValue(Progress));
+	float ScaleVal = ScaleCurve->GetFloatValue(Progress);
+	SetActorScale3D(FVector(ScaleVal));
+	NewVec = FVector(NewVec.X, NewVec.Y, NewVec.Z + HeightCurve->GetFloatValue(Progress));
+	Mesh->SetWorldLocation(NewVec);
+}
+
+void APickupWeapon::MoveToplayerWithTimerDone()
+{
+	GetWorldTimerManager().ClearTimer(PickupEffectTimerHandle);
+	if (Target.IsValid() )
+	{
+		IWeaponUserInterface::Execute_EquipWeapon(Target.Get(), WeaponData);
+		Destroy();
+	}
+}
+
 void APickupWeapon::OnHitAreaBeginOverlap(UPrimitiveComponent* InOverlappedComponent, AActor* InOtherActor, UPrimitiveComponent* InOtherComp, int32 InOtherBodyIndex, bool bFromSweep, const FHitResult& InSweepResult)
 {
-	IWeaponUserInterface::Execute_EquipWeapon(InOtherActor, WeaponData);
+	if (Target.IsValid() && bFollow)
+	{
+		if (InOtherActor == Target.Get())
+		{
+			IWeaponUserInterface::Execute_EquipWeapon(InOtherActor, WeaponData);
 
-	Destroy();
+			Destroy();
+		}
+
+	}
+
 }

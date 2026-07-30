@@ -42,7 +42,7 @@ void AActionCharacter::EquipWeapon_Implementation(UWeaponDataAsset* InWeaponData
 		CurrentWeapon = nullptr;
 	}
 
-	currentWeaponData = InWeaponData;
+	CurrentWeaponData = InWeaponData;
 	if (!InWeaponData->IsLoaded())
 	{
 		UWeaponDataAsset* Requested = InWeaponData;
@@ -50,7 +50,7 @@ void AActionCharacter::EquipWeapon_Implementation(UWeaponDataAsset* InWeaponData
 			//로딩이 완료 되었을 때 실행되는 람다
 			FStreamableDelegate::CreateWeakLambda(this, [this, Requested]() {
 
-				if (currentWeaponData == Requested)
+				if (CurrentWeaponData == Requested)
 						SpawnWeaponActor();
 			})
 		);
@@ -197,7 +197,7 @@ void AActionCharacter::SectionJumpForCombo()
 
 void AActionCharacter::SpawnWeaponActor()
 {
-	if (!currentWeaponData)
+	if (!CurrentWeaponData)
 	{
 		return;
 	}
@@ -210,7 +210,7 @@ void AActionCharacter::SpawnWeaponActor()
 
 	if (CurrentWeapon.IsValid())
 	{
-		CurrentWeapon->InitalizeWeapon(currentWeaponData);
+		CurrentWeapon->InitalizeWeapon(CurrentWeaponData);
 		// 생성이 끝남 (스폰 완료, BeginPlay까지 진행)
 		UGameplayStatics::FinishSpawningActor(CurrentWeapon.Get(), FTransform::Identity);
 	}
@@ -220,6 +220,7 @@ void AActionCharacter::SpawnWeaponActor()
 void AActionCharacter::UpdateAttackState(bool Inval)
 {
 	bCanAttack = Inval;
+
 }
 
 // Called to bind functionality to input

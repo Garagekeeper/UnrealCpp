@@ -6,6 +6,7 @@
 #include "Animation/AnimNotifies/AnimNotifyState.h"
 #include "AnimNotifyState_AttackState.generated.h"
 
+class AActionCharacter;
 /**
  * 
  */
