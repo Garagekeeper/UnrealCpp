@@ -35,30 +35,75 @@ AActionCharacter::AActionCharacter()
 
 void AActionCharacter::EquipWeapon_Implementation(UWeaponDataAsset* InWeaponData)
 {
-	// 이전 무기 해제
-	if (CurrentWeapon.IsValid())
+	if (!InWeaponData)
 	{
-		CurrentWeapon.Get()->DropWeapon();
-		CurrentWeapon = nullptr;
-	}
+		if (BaseWeapon)
+		{
+			//켜기
+			BaseWeapon->SetActivator(true);
+			CurrentWeapon = BaseWeapon;
+			CurrentWeapon->OnEquippedToTarget(this, ECC_Enemy);
+		}
+		else
+		{
+			// 만들기
+			CurrentWeaponData = BaseWeaponData;
+			if (!BaseWeaponData->IsLoaded())
+			{
+				UWeaponDataAsset* Requested = BaseWeaponData;
+				BaseWeaponData->RequestDataLoad(
+					//로딩이 완료 되었을 때 실행되는 람다
+					FStreamableDelegate::CreateWeakLambda(this, [this, Requested]() {
 
-	CurrentWeaponData = InWeaponData;
-	if (!InWeaponData->IsLoaded())
-	{
-		UWeaponDataAsset* Requested = InWeaponData;
-		InWeaponData->RequestDataLoad(
-			//로딩이 완료 되었을 때 실행되는 람다
-			FStreamableDelegate::CreateWeakLambda(this, [this, Requested]() {
-
-				if (CurrentWeaponData == Requested)
-						SpawnWeaponActor();
-			})
-		);
+						if (CurrentWeaponData == Requested)
+							SpawnWeaponActor();
+						})
+				);
+			}
+			else
+			{
+				SpawnWeaponActor();
+			}
+		}
 	}
 	else
 	{
-		SpawnWeaponActor();
+		// 이전 무기 해제
+		if (CurrentWeapon.IsValid())
+		{
+			if (CurrentWeapon == BaseWeapon)
+			{
+				BaseWeapon->SetActivator(false);
+				//CurrentWeapon = BaseWeapon;
+			}
+			else
+			{
+				CurrentWeapon.Get()->DropWeapon();
+				CurrentWeapon = nullptr;
+				GetWeaponAttackStateChangedDelegate().Clear();
+			}
+		}
+
+		CurrentWeaponData = InWeaponData;
+		if (!InWeaponData->IsLoaded())
+		{
+			UWeaponDataAsset* Requested = InWeaponData;
+			InWeaponData->RequestDataLoad(
+				//로딩이 완료 되었을 때 실행되는 람다
+				FStreamableDelegate::CreateWeakLambda(this, [this, Requested]() {
+
+					if (CurrentWeaponData == Requested)
+						SpawnWeaponActor();
+					})
+			);
+		}
+		else
+		{
+			SpawnWeaponActor();
+		}
 	}
+
+
 
 }
 
@@ -111,6 +156,9 @@ void AActionCharacter::BeginPlay()
 
 		StatComponent->InitializeStat(Data);
 	}
+
+	IWeaponUserInterface::Execute_EquipWeapon(this, BaseWeaponData);
+	BaseWeapon = CurrentWeapon.Get();
 }
 
 // Called every frame

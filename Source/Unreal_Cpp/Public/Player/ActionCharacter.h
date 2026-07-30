@@ -136,9 +136,9 @@ protected:
 	TObjectPtr<UWeaponDataAsset> CurrentWeaponData = nullptr;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
-	TWeakObjectPtr<AWeaponActor> BaseWeapon = nullptr;
+	TObjectPtr<AWeaponActor> BaseWeapon = nullptr;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")
 	TObjectPtr<UWeaponDataAsset> BaseWeaponData = nullptr;
 
 	

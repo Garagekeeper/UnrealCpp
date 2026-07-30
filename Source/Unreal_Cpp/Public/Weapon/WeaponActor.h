@@ -6,6 +6,7 @@
 #include "WeaponActor.generated.h"
 
 class UCapsuleComponent;
+class UNiagaraComponent;
 
 UCLASS()
 class UNREAL_CPP_API AWeaponActor : public AActor
@@ -29,6 +30,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void DropWeapon();
+
+	void SetActivator(bool bActive);
 
 protected:
 	// Called when the game starts or when spawned
@@ -73,8 +76,16 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float DropLifeSpan = 10.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UNiagaraComponent> NiagaraComponent;
+
+
 private:
 	// 이 무기를 장착한 캐릭터
 	TWeakObjectPtr<ACharacter> OwnerCharacter;
 	FTimerHandle PhysicsDelayTimerHandle;
+
+	// 사용횟수, -1이면 무한사용
+	// 양수면 0도달시 파괴됨
+	int UsageCount = -1;
 };

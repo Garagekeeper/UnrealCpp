@@ -6,6 +6,8 @@
 #include "Interface/WeaponUserInterface.h"
 #include "Kismet/GameplayStatics.h"
 #include "Data/WeaponDataAsset.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
 
 // Sets default values
 AWeaponActor::AWeaponActor()
@@ -32,6 +34,11 @@ AWeaponActor::AWeaponActor()
 	HitArea->SetCollisionObjectType(ECC_Weapon);
 	HitArea->SetCollisionResponseToAllChannels(ECR_Ignore);
 	HitArea->SetCollisionResponseToChannel(ECC_Enemy, ECR_Overlap);
+
+	NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TrailVFX"));
+	NiagaraComponent->SetupAttachment(RootComponent);
+	NiagaraComponent->bAutoActivate = false;
+	NiagaraComponent->Deactivate();
 }
 
 void AWeaponActor::AttackEnable(bool bEnable)
@@ -39,10 +46,22 @@ void AWeaponActor::AttackEnable(bool bEnable)
 	if (bEnable)
 	{
 		HitArea->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		NiagaraComponent->Activate(true);
 	}
 	else
 	{
 		HitArea->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		NiagaraComponent->Deactivate();
+		if (UsageCount > 0)
+		{
+			UsageCount--;
+			if (UsageCount == 0)
+			{
+				DropWeapon();
+				IWeaponUserInterface::Execute_EquipWeapon(GetOwner(), nullptr);
+			}
+
+		}
 	}
 }
 
@@ -59,6 +78,7 @@ void AWeaponActor::OnEquipped(AActor* InOwner, ECollisionChannel TargetChanel)
 	if (!WeaponData) return;
 
 	SetOwner(InOwner);
+	NiagaraComponent->Deactivate();
 	OwnerCharacter = Cast<ACharacter>(InOwner);
 	FAttachmentTransformRules AttachRules(
 		EAttachmentRule::SnapToTarget,
@@ -113,14 +133,15 @@ void AWeaponActor::InitalizeWeapon(UWeaponDataAsset* InData)
 
 	AttachSocketName = WeaponData->AttachSocketName;
 	AttackDamage = WeaponData->AttackDamage;
+	UsageCount = WeaponData->UsageCount;
 
-
-
+	NiagaraComponent->SetAsset(WeaponData->WeaponTrailVFX.Get());
+	UE_LOG(LogTemp, Log, TEXT("%p"), WeaponData->WeaponTrailVFX.Get());
 }
 
 void AWeaponActor::DropWeapon()
 {
-
+	NiagaraComponent->Deactivate();
 	FDetachmentTransformRules DetachRues(EDetachmentRule::KeepWorld, true);
 	DetachFromActor(DetachRues);
 
@@ -166,6 +187,21 @@ void AWeaponActor::DropWeapon()
 	OwnerCharacter = nullptr;
 }
 
+void AWeaponActor::SetActivator(bool bActive)
+{
+	// 1. Toggle Actor Ticking
+	SetActorTickEnabled(bActive);
+
+	// 2. Toggle Actor Visibility (Renders/Hides all attached primitives)
+	SetActorHiddenInGame(!bActive);
+
+	// 3. Toggle Actor Collision
+	SetActorEnableCollision(bActive);
+
+	
+
+}
+
 
 void AWeaponActor::OnHitAreaBeginOverlap(UPrimitiveComponent* InOverlappedComponent, AActor* InOtherActor, UPrimitiveComponent* InOtherComp, int32 InOtherBodyIndex, bool bFromSweep, const FHitResult& InSweepResult)
 {
@@ -173,6 +209,5 @@ void AWeaponActor::OnHitAreaBeginOverlap(UPrimitiveComponent* InOverlappedCompon
 
 	//UE_LOG(LogTemp, Log, TEXT("오버랩 된 대상 : %s"), *InOtherActor->GetName());
 	float Remain = UGameplayStatics::ApplyDamage(InOtherActor, AttackDamage, OwnerCharacter->GetController(), this, nullptr);
-	UE_LOG(LogTemp, Log, TEXT("대상: %s, 남은 체력: %f"), *InOtherActor->GetName(), Remain);
 }
 

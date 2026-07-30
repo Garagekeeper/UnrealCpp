@@ -6,6 +6,7 @@
 #include "WeaponDataAsset.generated.h"
 
 class UStaticMesh;
+class UNiagaraSystem;
 
 /**
  * 
@@ -43,6 +44,12 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "WeaponData")
 	float AttackDamage = 10.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "WeaponData")
+	int UsageCount = -1;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSoftObjectPtr<UNiagaraSystem> WeaponTrailVFX;
 	
 protected:
 };

@@ -10,6 +10,7 @@ TSharedPtr<FStreamableHandle> UWeaponDataAsset::RequestDataLoad(FStreamableDeleg
 	// 로드할 에셋들의 경로를 TArray에 담기
 	TArray<FSoftObjectPath> TargetsToLoad;
 	TargetsToLoad.Add(Mesh.ToSoftObjectPath());
+	TargetsToLoad.Add(WeaponTrailVFX.ToSoftObjectPath());
 
 	FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
 	return Streamable.RequestAsyncLoad(TargetsToLoad, MoveTemp(InDelegate));
@@ -17,5 +18,5 @@ TSharedPtr<FStreamableHandle> UWeaponDataAsset::RequestDataLoad(FStreamableDeleg
 
 bool UWeaponDataAsset::IsLoaded() const
 {
-	return Mesh.IsValid();
+	return Mesh.IsValid() && WeaponTrailVFX.IsValid();
 }
