@@ -35,10 +35,10 @@ AWeaponActor::AWeaponActor()
 	HitArea->SetCollisionResponseToAllChannels(ECR_Ignore);
 	HitArea->SetCollisionResponseToChannel(ECC_Enemy, ECR_Overlap);
 
-	NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TrailVFX"));
-	NiagaraComponent->SetupAttachment(RootComponent);
-	NiagaraComponent->bAutoActivate = false;
-	NiagaraComponent->Deactivate();
+	TrailVFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TrailVFX"));
+	TrailVFX->SetupAttachment(Mesh);
+	TrailVFX->bAutoActivate = false;
+	TrailVFX->Deactivate();
 }
 
 void AWeaponActor::AttackEnable(bool bEnable)
@@ -46,12 +46,12 @@ void AWeaponActor::AttackEnable(bool bEnable)
 	if (bEnable)
 	{
 		HitArea->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-		NiagaraComponent->Activate(true);
+		TrailVFX->Activate(true);
 	}
 	else
 	{
 		HitArea->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		NiagaraComponent->Deactivate();
+		TrailVFX->Deactivate();
 		if (UsageCount > 0)
 		{
 			UsageCount--;
@@ -78,7 +78,7 @@ void AWeaponActor::OnEquipped(AActor* InOwner, ECollisionChannel TargetChanel)
 	if (!WeaponData) return;
 
 	SetOwner(InOwner);
-	NiagaraComponent->Deactivate();
+	TrailVFX->Deactivate();
 	OwnerCharacter = Cast<ACharacter>(InOwner);
 	FAttachmentTransformRules AttachRules(
 		EAttachmentRule::SnapToTarget,
@@ -137,13 +137,13 @@ void AWeaponActor::InitalizeWeapon(UWeaponDataAsset* InData)
 	AttackDamage = WeaponData->AttackDamage;
 	UsageCount = WeaponData->UsageCount;
 
-	NiagaraComponent->SetAsset(WeaponData->WeaponTrailVFX.Get());
+	TrailVFX->SetAsset(WeaponData->WeaponTrailVFX.Get());
 	//UE_LOG(LogTemp, Log, TEXT("%p"), WeaponData->WeaponTrailVFX.Get());
 }
 
 void AWeaponActor::DropWeapon()
 {
-	NiagaraComponent->Deactivate();
+	TrailVFX->Deactivate();
 	FDetachmentTransformRules DetachRues(EDetachmentRule::KeepWorld, true);
 	DetachFromActor(DetachRues);
 

@@ -81,7 +81,7 @@ protected:
 	float DropLifeSpan = 10.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UNiagaraComponent> NiagaraComponent;
+	TObjectPtr<UNiagaraComponent> TrailVFX;
 
 
 private:
