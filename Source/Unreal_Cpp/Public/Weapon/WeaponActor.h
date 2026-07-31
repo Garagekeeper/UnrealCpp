@@ -31,6 +31,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void DropWeapon();
 
+	UFUNCTION(BlueprintCallable)
+	void RestUseCnt();
+
+
 	void SetActivator(bool bActive);
 
 protected:

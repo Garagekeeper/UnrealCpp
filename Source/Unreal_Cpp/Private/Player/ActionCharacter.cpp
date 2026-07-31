@@ -68,39 +68,48 @@ void AActionCharacter::EquipWeapon_Implementation(UWeaponDataAsset* InWeaponData
 	}
 	else
 	{
-		// 이전 무기 해제
-		if (CurrentWeapon.IsValid())
+		// 같은 무기 다시 주웠을 때 
+		if (CurrentWeaponData == InWeaponData)
 		{
-			if (CurrentWeapon == BaseWeapon)
-			{
-				BaseWeapon->SetActivator(false);
-				//CurrentWeapon = BaseWeapon;
-			}
-			else
-			{
-				CurrentWeapon.Get()->DropWeapon();
-				CurrentWeapon = nullptr;
-			}
-			GetWeaponAttackStateChangedDelegate().Clear();
-		}
-
-		CurrentWeaponData = InWeaponData;
-		if (!CurrentWeaponData->IsLoaded())
-		{
-			UWeaponDataAsset* Requested = CurrentWeaponData;
-			CurrentWeaponData->RequestDataLoad(
-				//로딩이 완료 되었을 때 실행되는 람다
-				FStreamableDelegate::CreateWeakLambda(this, [this, Requested]() {
-
-					if (CurrentWeaponData == Requested)
-						SpawnWeaponActor();
-					})
-			);
+			CurrentWeapon->RestUseCnt();
 		}
 		else
 		{
-			SpawnWeaponActor();
+			// 이전 무기 해제
+			if (CurrentWeapon.IsValid())
+			{
+				if (CurrentWeapon == BaseWeapon)
+				{
+					BaseWeapon->SetActivator(false);
+					//CurrentWeapon = BaseWeapon;
+				}
+				else
+				{
+					CurrentWeapon.Get()->DropWeapon();
+					CurrentWeapon = nullptr;
+				}
+				GetWeaponAttackStateChangedDelegate().Clear();
+			}
+
+			CurrentWeaponData = InWeaponData;
+			if (!CurrentWeaponData->IsLoaded())
+			{
+				UWeaponDataAsset* Requested = CurrentWeaponData;
+				CurrentWeaponData->RequestDataLoad(
+					//로딩이 완료 되었을 때 실행되는 람다
+					FStreamableDelegate::CreateWeakLambda(this, [this, Requested]() {
+
+						if (CurrentWeaponData == Requested)
+							SpawnWeaponActor();
+						})
+				);
+			}
+			else
+			{
+				SpawnWeaponActor();
+			}
 		}
+		
 	}
 
 
@@ -157,8 +166,13 @@ void AActionCharacter::BeginPlay()
 		StatComponent->InitializeStat(Data);
 	}
 
-	IWeaponUserInterface::Execute_EquipWeapon(this, BaseWeaponData);
-	BaseWeapon = CurrentWeapon.Get();
+	if (BaseWeaponData)
+	{
+		IWeaponUserInterface::Execute_EquipWeapon(this, BaseWeaponData);
+		//EquipWeapon(BaseWeaponData);
+		BaseWeapon = CurrentWeapon.Get();
+	}
+
 }
 
 // Called every frame

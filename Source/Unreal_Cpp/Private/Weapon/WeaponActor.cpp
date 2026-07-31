@@ -70,7 +70,7 @@ void AWeaponActor::BeginPlay()
 {
 	Super::BeginPlay();
 	HitArea->OnComponentBeginOverlap.AddDynamic(this, &AWeaponActor::OnHitAreaBeginOverlap);
-	UE_LOG(LogTemp, Log, TEXT("웨폰액터 시작"));
+	//UE_LOG(LogTemp, Log, TEXT("웨폰액터 시작"));
 }
 
 void AWeaponActor::OnEquipped(AActor* InOwner, ECollisionChannel TargetChanel)
@@ -138,7 +138,7 @@ void AWeaponActor::InitalizeWeapon(UWeaponDataAsset* InData)
 	UsageCount = WeaponData->UsageCount;
 
 	NiagaraComponent->SetAsset(WeaponData->WeaponTrailVFX.Get());
-	UE_LOG(LogTemp, Log, TEXT("%p"), WeaponData->WeaponTrailVFX.Get());
+	//UE_LOG(LogTemp, Log, TEXT("%p"), WeaponData->WeaponTrailVFX.Get());
 }
 
 void AWeaponActor::DropWeapon()
@@ -188,6 +188,11 @@ void AWeaponActor::DropWeapon()
 
 	// 오너 캐릭터 밀어주기
 	OwnerCharacter = nullptr;
+}
+
+void AWeaponActor::RestUseCnt()
+{
+	UsageCount = WeaponData->UsageCount;
 }
 
 void AWeaponActor::SetActivator(bool bActive)
