@@ -5,7 +5,7 @@
 #include "Engine/StreamableManager.h"
 #include "WeaponDataAsset.generated.h"
 
-class UStaticMesh;
+class USkeletalMesh;
 class UNiagaraSystem;
 
 /**
@@ -24,7 +24,7 @@ public:
 
 	// Mesh Of Weapon
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Appearance")
-	TSoftObjectPtr<UStaticMesh> Mesh;
+	TSoftObjectPtr<USkeletalMesh> Mesh;
 	
 	// Socket to Attach
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Appearance")

@@ -8,6 +8,7 @@
 #include "Data/WeaponDataAsset.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
+#include "Engine/SkeletalMesh.h"
 
 // Sets default values
 AWeaponActor::AWeaponActor()
@@ -15,7 +16,7 @@ AWeaponActor::AWeaponActor()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 
-	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RootMesh"));
+	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("RootMesh"));
 	SetRootComponent(Mesh);
 
 	//Mesh->SetCollisionProfileName(TEXT("NoCollision"));						// 1.프로파일을 통해서 한번에 세팅
@@ -36,8 +37,8 @@ AWeaponActor::AWeaponActor()
 	HitArea->SetCollisionResponseToChannel(ECC_Enemy, ECR_Overlap);
 
 	TrailVFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TrailVFX"));
-	TrailVFX->SetupAttachment(Mesh);
-	TrailVFX->bAutoActivate = false;
+	TrailVFX->SetupAttachment(RootComponent);
+	TrailVFX->bAutoActivate = true;
 	TrailVFX->Deactivate();
 }
 
@@ -126,7 +127,7 @@ void AWeaponActor::InitalizeWeapon(UWeaponDataAsset* InData)
 	if (!InData) nullptr;
 
 	WeaponData = InData;
-	Mesh->SetStaticMesh(WeaponData->Mesh.Get());
+	Mesh->SetSkeletalMesh(WeaponData->Mesh.Get());
 
 	HitArea->SetCapsuleHalfHeight(WeaponData->hitAreaHalfheight, false);								// 뒤의 bool은 크기 변경시 오버렙 바로 갱신할거냐
 	HitArea->SetCapsuleRadius(WeaponData->hitAreaRad, false);
@@ -138,7 +139,7 @@ void AWeaponActor::InitalizeWeapon(UWeaponDataAsset* InData)
 	UsageCount = WeaponData->UsageCount;
 
 	TrailVFX->SetAsset(WeaponData->WeaponTrailVFX.Get());
-	//UE_LOG(LogTemp, Log, TEXT("%p"), WeaponData->WeaponTrailVFX.Get());
+	UE_LOG(LogTemp, Log, TEXT("%p"), WeaponData->WeaponTrailVFX.Get());
 }
 
 void AWeaponActor::DropWeapon()

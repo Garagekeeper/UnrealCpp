@@ -3,7 +3,7 @@
 
 #include "Data/WeaponDataAsset.h"
 #include "Engine/AssetManager.h"
-#include "Engine/StaticMesh.h"
+#include "Engine/SkeletalMesh.h"
 
 TSharedPtr<FStreamableHandle> UWeaponDataAsset::RequestDataLoad(FStreamableDelegate InDelegate)
 {

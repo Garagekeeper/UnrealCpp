@@ -40,9 +40,9 @@ void APickupWeapon::OnConstruction(const FTransform& Transform)
 	{
 		// 여기서는 바로 로딩되는게 좋음
 		// 내부에서 get에서 있으면 바로 리턴 없으면 로드
-		if (UStaticMesh* StaticMeshData = WeaponData->Mesh.LoadSynchronous())
+		if (USkeletalMesh* SkeletalData = WeaponData->Mesh.LoadSynchronous())
 		{
-			Mesh->SetStaticMesh(StaticMeshData);
+			Mesh->SetSkeletalMesh(SkeletalData);
 			Mesh->SetRelativeLocation(OffsetInitBP + WeaponData->LocationOffset);
 		}
 	}

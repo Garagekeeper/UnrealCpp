@@ -19,7 +19,7 @@ APickupBase::APickupBase()
 	DetectSphereCollision->InitSphereRadius(100.0f);
 	SetRootComponent(DetectSphereCollision);
 
-	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
+	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
 	Mesh->SetupAttachment(RootComponent);
 
 	NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("VFX"));
