@@ -29,7 +29,6 @@ protected:
 
 
 private:
-	TWeakObjectPtr<AActionCharacter> OwnerCharacter = nullptr;
 	
 	
 };

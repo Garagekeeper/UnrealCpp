@@ -8,6 +8,7 @@
 
 void UBarWidget::UpdateBar(float InCurrent, float InMax)
 {
+	InMax = FMath::Max(0.0001f, InMax);
 	UpdateBarTarget(InCurrent / InMax);
 	UpdateValueText(InCurrent);
 }

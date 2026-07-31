@@ -80,15 +80,15 @@ void AActionCharacter::EquipWeapon_Implementation(UWeaponDataAsset* InWeaponData
 			{
 				CurrentWeapon.Get()->DropWeapon();
 				CurrentWeapon = nullptr;
-				GetWeaponAttackStateChangedDelegate().Clear();
 			}
+			GetWeaponAttackStateChangedDelegate().Clear();
 		}
 
 		CurrentWeaponData = InWeaponData;
-		if (!InWeaponData->IsLoaded())
+		if (!CurrentWeaponData->IsLoaded())
 		{
-			UWeaponDataAsset* Requested = InWeaponData;
-			InWeaponData->RequestDataLoad(
+			UWeaponDataAsset* Requested = CurrentWeaponData;
+			CurrentWeaponData->RequestDataLoad(
 				//로딩이 완료 되었을 때 실행되는 람다
 				FStreamableDelegate::CreateWeakLambda(this, [this, Requested]() {
 

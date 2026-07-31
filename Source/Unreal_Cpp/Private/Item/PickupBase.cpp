@@ -71,7 +71,7 @@ void APickupBase::MoveupDownAndSpinWithTick()
 	//	Elapsed -= 3.0f;
 	//float Dz = UpDownCurve->GetFloatValue(Elapsed) * MoveWidth;
 	//SetActorLocation(InitPos + FVector(0, 0, Dz));
-
+	UpDownDuration = UpDownDuration <= 0 ? 0.0001f : UpDownDuration;
 	float Progress = FMath::Fmod(Elapsed / UpDownDuration, 1.0f);
 
 	FVector NewMeshLocation = OffsetInitBP;

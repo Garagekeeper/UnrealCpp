@@ -18,24 +18,27 @@ void APickupEffect::OnPickUp(AActor* OtherActor)
 	IStatHolder* Stat = Cast<IStatHolder>(OtherActor);
 	if (OtherActor && Stat)
 	{
-		UStatComponent* Component = Stat->GetStatComponent();
-		//UStatComponent* Component = IStatHolder::Execute_GetStatComponent(OtherActor);
-		if (Stamina > 0)
+		if (UStatComponent* Component = Stat->GetStatComponent())
 		{
-			IStaminaInterface::Execute_RecoveryStamina(Component, Stamina);
-		}
-		else if (Stamina < 0)
-		{
-			IStaminaInterface::Execute_ConsumeStamina(Component, -Stamina);
+			//UStatComponent* Component = IStatHolder::Execute_GetStatComponent(OtherActor);
+			if (Stamina > 0)
+			{
+				IStaminaInterface::Execute_RecoveryStamina(Component, Stamina);
+			}
+			else if (Stamina < 0)
+			{
+				IStaminaInterface::Execute_ConsumeStamina(Component, -Stamina);
+			}
+
+			if (Health > 0)
+			{
+				IHealthInterface::Execute_ApplyHeal(Component, Health);
+			}
+			else if (Health < 0)
+			{
+				IHealthInterface::Execute_ApplyDamage(Component, -Health);
+			}
 		}
 
-		if (Health > 0)
-		{
-			IHealthInterface::Execute_ApplyHeal(Component, Health);
-		}
-		else if (Health < 0)
-		{
-			IHealthInterface::Execute_ApplyDamage(Component, -Health);
-		}
 	}
 }

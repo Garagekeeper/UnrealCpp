@@ -123,6 +123,8 @@ void AWeaponActor::OnEquippedToTarget(AActor* InOwner, ECollisionChannel TargetC
 
 void AWeaponActor::InitalizeWeapon(UWeaponDataAsset* InData)
 {
+	if (!InData) nullptr;
+
 	WeaponData = InData;
 	Mesh->SetStaticMesh(WeaponData->Mesh.Get());
 
@@ -157,7 +159,8 @@ void AWeaponActor::DropWeapon()
 	FTimerManager& TimerManager = GetWorldTimerManager();
 	TimerManager.SetTimer(
 		PhysicsDelayTimerHandle,
-		FTimerDelegate::CreateLambda(
+		FTimerDelegate::CreateWeakLambda(
+			this,
 			[this]()
 			{
 				if (Mesh)
@@ -172,7 +175,7 @@ void AWeaponActor::DropWeapon()
 
 
 	// 뒤로 던지기
-	FVector BackDir = -OwnerCharacter->GetActorForwardVector();
+	FVector BackDir = OwnerCharacter.IsValid() ? -OwnerCharacter->GetActorForwardVector() : -FVector::BackwardVector;
 	FVector ThrowDir = BackDir * 500.0f + FVector::UpVector * 300.0f;
 	FVector AngularImpulse = FVector(
 		FMath::RandRange(-200, 200)
@@ -205,6 +208,7 @@ void AWeaponActor::SetActivator(bool bActive)
 
 void AWeaponActor::OnHitAreaBeginOverlap(UPrimitiveComponent* InOverlappedComponent, AActor* InOtherActor, UPrimitiveComponent* InOtherComp, int32 InOtherBodyIndex, bool bFromSweep, const FHitResult& InSweepResult)
 {
+	if (!OwnerCharacter.IsValid() || !InOtherActor) return;
 	if (!WeaponData) return;
 
 	//UE_LOG(LogTemp, Log, TEXT("오버랩 된 대상 : %s"), *InOtherActor->GetName());

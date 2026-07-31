@@ -122,6 +122,7 @@ void APickupWeapon::MoveToPlayerWithTimer()
 
 	ElapsedForTimer += TimerInterval;
 
+	PickUpEffectDuration = PickUpEffectDuration <= 0 ? 0.0001f : PickUpEffectDuration;
 	float Progress = ElapsedForTimer / PickUpEffectDuration;
 	if (Progress >= 1.0f)
 	{

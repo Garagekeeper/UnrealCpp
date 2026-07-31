@@ -8,8 +8,8 @@ void UAnimNotifyState_SectionJump::NotifyBegin(USkeletalMeshComponent* MeshComp,
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
 
-	OwnerCharacter = Cast<AActionCharacter>(MeshComp->GetOwner());
-	if (OwnerCharacter.IsValid())
+	AActionCharacter* OwnerCharacter = Cast<AActionCharacter>(MeshComp->GetOwner());
+	if (OwnerCharacter)
 	{
 		OwnerCharacter->SetSectionJumpNotify(this);
 	}
@@ -19,7 +19,8 @@ void UAnimNotifyState_SectionJump::NotifyBegin(USkeletalMeshComponent* MeshComp,
 
 void UAnimNotifyState_SectionJump:: NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
-	if (OwnerCharacter.IsValid())
+	AActionCharacter* OwnerCharacter = Cast<AActionCharacter>(MeshComp->GetOwner());
+	if (OwnerCharacter)
 	{
 		OwnerCharacter->SetSectionJumpNotify(nullptr);
 		OwnerCharacter = nullptr;

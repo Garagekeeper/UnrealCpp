@@ -34,7 +34,7 @@ protected:
 
 
 private:
-	IWeaponUserInterface* WeaponOwner = nullptr;
+	//IWeaponUserInterface* WeaponOwner = nullptr;
 	//TWeakObjectPtr<IWeaponUserInterface> Owner = nullptr;
 
 	
