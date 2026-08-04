@@ -38,7 +38,7 @@ AWeaponActor::AWeaponActor()
 
 	TrailVFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TrailVFX"));
 	TrailVFX->SetupAttachment(RootComponent);
-	TrailVFX->bAutoActivate = true;
+	TrailVFX->bAutoActivate = false;
 	TrailVFX->Deactivate();
 }
 
