@@ -50,6 +50,19 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TSoftObjectPtr<UNiagaraSystem> WeaponTrailVFX;
+
+	// 무기의 범위공격력
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "WeaponData")
+	float AreaAttackPower = 50.0f;
+
+	// 무기의 범위 공격의 반지름(안쪽, 이 안쪽은 100% 데미지)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "WeaponData")
+	float AreaAttackInnerRadius = 100.0f;
+
+	// 무기의 범위 공격의 반지름(바깥, Inner ~ Outter범위는 거리에 따라 감소)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "WeaponData")
+	float AreaAttackOutterRadius = 300.0f;
+
 	
 protected:
 };

@@ -41,6 +41,7 @@ public:
 
 	void SetSectionJumpNotify(UAnimNotifyState_SectionJump* InSectionJumpNotify);
 	void UpdateAttackState(bool Inval);
+	void OnAreaAttack();
 
 protected:
 	// Called when the game starts or when spawned

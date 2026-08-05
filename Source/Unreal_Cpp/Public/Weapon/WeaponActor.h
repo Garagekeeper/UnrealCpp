@@ -34,6 +34,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void RestUseCnt();
 
+	UFUNCTION(BlueprintCallable)
+	FVector GetWeaponImpactLocation() const;
 
 	void SetActivator(bool bActive);
 

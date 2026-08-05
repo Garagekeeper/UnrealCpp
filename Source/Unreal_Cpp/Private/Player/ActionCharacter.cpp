@@ -433,6 +433,50 @@ void AActionCharacter::OnRollAction(const FInputActionValue& Value)
 	}
 }
 
+void AActionCharacter::OnAreaAttack()
+{
+	if (!CurrentWeapon.IsValid() || !CurrentWeaponData ) return;
+
+	// 디버그 정보 출력
+	DrawDebugSphere(
+		GetWorld(),
+		CurrentWeapon->GetWeaponImpactLocation(),
+		CurrentWeaponData->AreaAttackInnerRadius,
+		12,
+		FColor::Red,
+		false,
+		5.0f
+	);
+	DrawDebugSphere(
+		GetWorld(),
+		CurrentWeapon->GetWeaponImpactLocation(),
+		CurrentWeaponData->AreaAttackOutterRadius,
+		12,
+		FColor::Yellow,
+		false,
+		5.0f
+	);
+
+
+	//UNiagaraFunctionLibrary::SpawnSystemAtLocation()
+
+	TArray<AActor*> IgnoreActors = { CurrentWeapon.Get(),this };
+	UGameplayStatics::ApplyRadialDamageWithFalloff(
+		GetWorld(),
+		CurrentWeaponData->AreaAttackPower,
+		1,
+		CurrentWeapon->GetWeaponImpactLocation(),
+		CurrentWeaponData->AreaAttackInnerRadius,
+		CurrentWeaponData->AreaAttackOutterRadius,
+		1.0f,	// 1일때(거리에 정비례해서 감소), 0에 가까워 질 때(위로 볼록한 그래프), 1보다 커질 때(아래로 오목한 그래프)
+		nullptr,
+		IgnoreActors,
+		CurrentWeapon.Get(),
+		GetController(),
+		ECC_Enemy);
+
+}
+
 float AActionCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	float Damage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);

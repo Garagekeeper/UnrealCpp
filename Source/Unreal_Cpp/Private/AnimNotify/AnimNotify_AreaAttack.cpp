@@ -2,6 +2,9 @@
 
 
 #include "AnimNotify/AnimNotify_AreaAttack.h"
+#include "Interface/WeaponUserInterface.h"
+#include "Weapon/WeaponActor.h"
+#include "Player/ActionCharacter.h"
 
 void UAnimNotify_AreaAttack::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
@@ -23,5 +26,17 @@ void UAnimNotify_AreaAttack::Notify(USkeletalMeshComponent* MeshComp, UAnimSeque
 		CameraManager->StartCameraShake(ShakeEffect);
 	}
 
-	MeshComp->GetOwner();;
+	AActionCharacter* OwnerCharacter = Cast<AActionCharacter>(MeshComp->GetOwner());
+	if (OwnerCharacter)
+	{
+		OwnerCharacter->OnAreaAttack();
+	}
+
+	//if (IWeaponUserInterface* WeaponUser = Cast<IWeaponUserInterface>(MeshComp->GetOwner()))
+	//{
+	//	if (UWeaponComponent* WeaponComp = WeaponUser->GetWeaponComponent())
+	//	{
+	//		WeaponComp->AreaAttack();
+	//	}
+	//}
 }

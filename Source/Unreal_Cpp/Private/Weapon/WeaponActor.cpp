@@ -139,7 +139,7 @@ void AWeaponActor::InitalizeWeapon(UWeaponDataAsset* InData)
 	UsageCount = WeaponData->UsageCount;
 
 	TrailVFX->SetAsset(WeaponData->WeaponTrailVFX.Get());
-	UE_LOG(LogTemp, Log, TEXT("%p"), WeaponData->WeaponTrailVFX.Get());
+	//UE_LOG(LogTemp, Log, TEXT("%p"), WeaponData->WeaponTrailVFX.Get());
 }
 
 void AWeaponActor::DropWeapon()
@@ -194,6 +194,11 @@ void AWeaponActor::DropWeapon()
 void AWeaponActor::RestUseCnt()
 {
 	UsageCount = WeaponData->UsageCount;
+}
+
+FVector AWeaponActor::GetWeaponImpactLocation() const
+{
+	return FMath::Lerp(Mesh->GetSocketLocation(TEXT("Tip")), Mesh->GetSocketLocation(TEXT("Base")), 0.5f);
 }
 
 void AWeaponActor::SetActivator(bool bActive)

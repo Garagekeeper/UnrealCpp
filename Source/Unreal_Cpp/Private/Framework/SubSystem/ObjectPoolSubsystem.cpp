@@ -212,7 +212,9 @@ void UObjectPoolSubsystem::ClearPool(TSubclassOf<AActor> InClass)
 
 void UObjectPoolSubsystem::ClearAllPools()
 {
-	for (auto& [Key, _] : PoolMap)
+	TArray<TSubclassOf<AActor>> Keys;
+	PoolMap.GetKeys(Keys);
+	for (auto& Key : Keys)
 	{
 		ClearPool(Key);
 	}
