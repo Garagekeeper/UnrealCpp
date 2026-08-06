@@ -46,7 +46,7 @@ class UNREAL_CPP_API UObjectPoolSubsystem : public UGameInstanceSubsystem
 public:
 	//template<typename T>
 	UFUNCTION(BlueprintCallable)
-	//AActor* Spawn(AActor* InType, const FTransform& InTransForm);
+
 	AActor* Spawn(TSubclassOf<AActor> InType, const FTransform& InTransForm);
 
 	void SpawnActorToWorld(TSubclassOf<AActor> Target, AActor*& Spawned, const FTransform& InTransForm);

@@ -7,7 +7,7 @@
 #include "Interface/StatHolder.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
-
+#include "Framework/SubSystem/ObjectPoolSubsystem.h"
 
 // Sets default values
 APickupBase::APickupBase()
@@ -24,6 +24,35 @@ APickupBase::APickupBase()
 
 	NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("VFX"));
 	NiagaraComponent->SetupAttachment(RootComponent);
+}
+
+void APickupBase::ReturnPoolObject()
+{
+
+}
+
+void APickupBase::Init(UPrimaryDataAsset* asset)
+{
+	SetActorScale3D(FVector::OneVector);
+	Mesh->SetRelativeLocation(FVector::ZeroVector);
+	bFollow = false;
+	Elapsed = 0;
+	DetectSphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+}
+
+void APickupBase::Onspawn_Implementation()
+{
+	SetActorHiddenInGame(false);
+	SetActorEnableCollision(true);
+	SetActorTickEnabled(true);
+}
+
+void APickupBase::OnReturn_Implementation()
+{
+	SetActorHiddenInGame(true);
+	SetActorEnableCollision(false);
+	SetActorTickEnabled(false);
+	SetActorLocation(FVector(0, 0, -10000.0f));
 }
 
 void APickupBase::NotifyActorBeginOverlap(AActor* OtherActor)

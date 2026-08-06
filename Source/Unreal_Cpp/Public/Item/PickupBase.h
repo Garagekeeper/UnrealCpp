@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Interface/Poolable.h"
 #include "PickupBase.generated.h"
 
 class USphereComponent;
@@ -11,13 +12,20 @@ class UStaticMeshComponent;
 class UNiagaraComponent;
 
 UCLASS()
-class UNREAL_CPP_API APickupBase : public AActor
+class UNREAL_CPP_API APickupBase : public AActor, public IPoolable
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this character's properties
 	APickupBase();
+	
+	UFUNCTION(BlueprintCallable)
+	virtual void ReturnPoolObject() override;
+	virtual void Init(UPrimaryDataAsset* asset);
+
+	void Onspawn_Implementation();
+	void OnReturn_Implementation();
 
 
 protected:

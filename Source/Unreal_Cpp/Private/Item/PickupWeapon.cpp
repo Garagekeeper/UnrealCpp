@@ -7,6 +7,8 @@
 #include "Interface/WeaponUserInterface.h"
 #include "Components/SphereComponent.h"
 #include "NiagaraComponent.h"
+#include "Framework/SubSystem/ObjectPoolSubsystem.h"
+
 
 APickupWeapon::APickupWeapon()
 {
@@ -67,8 +69,28 @@ void APickupWeapon::BeginPlay()
 
 }
 
+void APickupWeapon::Init(UPrimaryDataAsset* asset)
+{
+	Super::Init(asset);
+	if (!asset) return;
+	if (WeaponData = Cast<UWeaponDataAsset>(asset))
+	{
+		if (USkeletalMesh* SkeletalData = WeaponData->Mesh.LoadSynchronous())
+		{
+			Mesh->SetSkeletalMesh(SkeletalData);
+			Mesh->SetWorldLocation(FVector::ZeroVector);
+			Mesh->SetRelativeLocation(OffsetInitBP + WeaponData->LocationOffset);
+			ElapsedForTimer = 0;
+			NiagaraComponent->Activate();
+
+		}
+	}
+}
+
 void APickupWeapon::DetectPickUp()
 {
+	//TODO pickup 먹을 수 있는 인터페이스 만드릭
+	if (!Target.Get()->Implements<UWeaponUserInterface>()) return;
 	// 내 풀이
 	bFollow = true;
 	//Elapsed = 0.0f;
@@ -142,7 +164,13 @@ void APickupWeapon::MoveToplayerWithTimerDone()
 	if (Target.IsValid() )
 	{
 		IWeaponUserInterface::Execute_EquipWeapon(Target.Get(), WeaponData);
-		Destroy();
+		if (UGameInstance* GameInstance = GetGameInstance())
+		{
+			UObjectPoolSubsystem* SubSystem = GameInstance->GetSubsystem<UObjectPoolSubsystem>();
+			SubSystem->ReturnPool(this);
+		}
+
+		//Destroy();
 	}
 }
 
@@ -154,7 +182,12 @@ void APickupWeapon::OnHitAreaBeginOverlap(UPrimitiveComponent* InOverlappedCompo
 		{
 			IWeaponUserInterface::Execute_EquipWeapon(InOtherActor, WeaponData);
 
-			Destroy();
+			if (UGameInstance* GameInstance = GetGameInstance())
+			{
+				UObjectPoolSubsystem* SubSystem = GameInstance->GetSubsystem<UObjectPoolSubsystem>();
+				SubSystem->ReturnPool(this);
+			}
+			//Destroy();
 		}
 
 	}

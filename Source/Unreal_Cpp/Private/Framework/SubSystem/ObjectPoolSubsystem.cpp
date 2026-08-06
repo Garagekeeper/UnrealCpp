@@ -10,25 +10,29 @@ AActor* UObjectPoolSubsystem::Spawn(TSubclassOf<AActor> InType, const FTransform
 {
 	if (!InType) return nullptr;
 	if (!GetWorld()) return nullptr;
-	if (!PoolMap.Find(InType))
-	{
-		UE_LOG(LogTemp, Log, TEXT("This class can not ppoolable"));
-		return nullptr;
-	}
+	//if (!PoolMap.Find(InType))
+	//{
+	//	UE_LOG(LogTemp, Log, TEXT("This class can not ppoolable"));
+	//	return nullptr;
+	//}
 
 
 	//UClass* Target = InType->GetClass();
 
 	AActor* Spawned = nullptr;
 
-
-	if (PoolMap[InType].ReadyActors.Num() > 0)
+	while (PoolMap.Find(InType) && PoolMap[InType].ReadyActors.Num() > 0)
 	{
-		Spawned = PoolMap[InType].ReadyActors.Pop();
-		Spawned->SetActorTransform(InTransForm, false, nullptr, ETeleportType::TeleportPhysics);
-
+		AActor* Candidate = PoolMap[InType].ReadyActors.Pop();
+		if (IsValid(Candidate))
+		{
+			Spawned = Candidate;
+			Spawned->SetActorTransform(InTransForm, false, nullptr, ETeleportType::TeleportPhysics);
+			break;
+		}
 	}
-	else
+
+	if (!Spawned)
 	{
 		switch (PoolMap[InType].Policy)
 		{
@@ -48,8 +52,9 @@ AActor* UObjectPoolSubsystem::Spawn(TSubclassOf<AActor> InType, const FTransform
 					}
 
 					Spawned = Oldest;
+					ReturnPool(Spawned);
 					Spawned->SetActorTransform(InTransForm, false, nullptr, ETeleportType::TeleportPhysics);
-					UE_LOG(LogTemp, Log, TEXT("%s, Reused by ReUseOldest"), *(InType->GetName()));
+					UE_LOG(LogTemp, Log, TEXT("%s, Reused by ReuseOldest"), *(InType->GetName()));
 				}
 				else
 				{
@@ -169,9 +174,13 @@ void UObjectPoolSubsystem::WarmUp(TSubclassOf<AActor> InClass)
 	{
 		FTransform Init(FVector::DownVector * 10000.0f);
 		TArray<AActor*> SpawnedArray;
+		SpawnedArray.Reserve(Pool->InitialSize);
+
+		AActor* Spawned = nullptr;
+
 		for (int i = 0; i < Pool->InitialSize; i++)
 		{
-			AActor* Spawned = Spawn(InClass, Init);
+			SpawnActorToWorld(InClass, Spawned, Init);
 			SpawnedArray.Add(Spawned);
 		}
 
@@ -179,6 +188,7 @@ void UObjectPoolSubsystem::WarmUp(TSubclassOf<AActor> InClass)
 		{
 			ReturnPool(SpawnedActor);
 		}
+
 	}
 }
 
@@ -201,7 +211,7 @@ void UObjectPoolSubsystem::ClearPool(TSubclassOf<AActor> InClass)
 			if (IsValid(Actor)) Actor->Destroy();
 		}
 		Pool->ReadyActors.Empty();
-		for (auto& [Key,_] : Pool->ActiveActors)
+		for (auto& [Key, _] : Pool->ActiveActors)
 		{
 			if (IsValid(Key)) Key->Destroy();
 		}
@@ -223,13 +233,6 @@ void UObjectPoolSubsystem::ClearAllPools()
 
 void UObjectPoolSubsystem::CreatePool(const UObjectPoolDataAsset* LoadedDataAsset)
 {
-	//UClass* InClass = InActor.Get();
-	//if (!PoolMap.Find(InActor.Get()))
-	//{
-	//	
-	//	PoolableClass.Add(InActor, InActor.LoadSynchronous());
-	//	PoolMap.FindOrAdd(InActor.LoadSynchronous(), FActorPool());
-	//}
 
 	TSubclassOf<AActor> InClass = LoadedDataAsset->ActorClass.LoadSynchronous();
 
@@ -238,7 +241,7 @@ void UObjectPoolSubsystem::CreatePool(const UObjectPoolDataAsset* LoadedDataAsse
 		ClearPool(InClass);
 	}
 
-	PoolMap.FindOrAdd(InClass, 
+	PoolMap.FindOrAdd(InClass,
 		FActorPool(LoadedDataAsset->InitialSize, LoadedDataAsset->MaxSize, LoadedDataAsset->PoolPolicy));
 
 }

@@ -19,6 +19,12 @@ class UNREAL_CPP_API APickupWeapon : public APickupBase
 
 public:
 	APickupWeapon();
+
+	void SetDataAssetToPickup(UWeaponDataAsset* asset)
+	{
+		WeaponData = asset;
+	}
+	virtual void Init(UPrimaryDataAsset* asset) override;
 	
 protected:
 	virtual void OnPickUp(AActor* OtherActor) override;
@@ -26,6 +32,7 @@ protected:
 	virtual void Tick(float DeltaTime) override;
 	virtual void BeginPlay() override;
 	void DetectPickUp();
+
 
 	UFUNCTION()
 	void OnHitAreaBeginOverlap(

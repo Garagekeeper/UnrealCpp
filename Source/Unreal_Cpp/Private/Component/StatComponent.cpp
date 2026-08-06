@@ -114,7 +114,7 @@ void UStatComponent::ApplyDamage_Implementation(float InAmount)
 {
 	InAmount = FMath::Max(InAmount, 0.0f);
 	CurrentHealth = CurrentHealth - InAmount;
-	if (CurrentHealth < 0.0f)
+	if (CurrentHealth <= 0.0f)
 	{
 		CurrentHealth = 0;
 		OnDeath.Broadcast();
