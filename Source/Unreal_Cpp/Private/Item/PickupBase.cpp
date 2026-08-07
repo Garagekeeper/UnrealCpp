@@ -8,6 +8,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
 #include "Framework/SubSystem/ObjectPoolSubsystem.h"
+#include "Unreal_Cpp/Unreal_Cpp.h"
 
 // Sets default values
 APickupBase::APickupBase()
@@ -17,6 +18,8 @@ APickupBase::APickupBase()
 
 	DetectSphereCollision = CreateDefaultSubobject<USphereComponent>(TEXT("RootCollision"));
 	DetectSphereCollision->InitSphereRadius(100.0f);
+	DetectSphereCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
+	DetectSphereCollision->SetCollisionResponseToChannel(ECC_Player, ECR_Overlap);
 	SetRootComponent(DetectSphereCollision);
 
 	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));

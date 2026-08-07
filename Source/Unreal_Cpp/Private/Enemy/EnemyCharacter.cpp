@@ -59,39 +59,34 @@ float AEnemyCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Damage
 
 void AEnemyCharacter::DropItem()
 {
-	if (IsValid(ItemDropTable))
+	if (!IsValid(ItemDropTable)) return;
+
+	float RandNum = FMath::FRandRange(0.0, 1.0);
+	for (const auto& [Key, Value] : ItemDropTable->GetRowMap())
 	{
-		float RandNum = FMath::FRandRange(0.0, 1.0);
-		for (const auto& [Key, Value] : ItemDropTable->GetRowMap())
+		FItemDropTableRow* DropTableRow = reinterpret_cast<FItemDropTableRow*>(Value);
+		if (!DropTableRow || !DropTableRow->DropItemAsset.LoadSynchronous()) continue;
+
+		UGameInstance* GameInstance = GetGameInstance();
+
+		float currentItemSpawnRate = DropTableRow->DropRate;
+		if (currentItemSpawnRate < RandNum)
 		{
-			FItemDropTableRow* DropTableRow = reinterpret_cast<FItemDropTableRow*>(Value);
-			if (!DropTableRow) continue;
 
-			UGameInstance* GameInstance = GetGameInstance();
+			FActorSpawnParameters SpawnParam;
+			SpawnParam.Owner = nullptr;
+			SpawnParam.ObjectFlags = RF_Transient;
+			FTransform NewTransform = GetTransform();
+			FVector NewLocation = NewTransform.GetLocation();
+			NewLocation.X += FMath::FRandRange(-100.0, 100.0);
+			NewLocation.Y += FMath::FRandRange(-100.0, 100.0);
+			NewTransform.SetLocation(NewLocation);
 
-			float currentItemSpawnRate = DropTableRow->DropRate;
-			if (currentItemSpawnRate < RandNum)
-			{
-
-				FActorSpawnParameters SpawnParam;
-				SpawnParam.Owner = nullptr;
-				SpawnParam.ObjectFlags = RF_Transient;
-				FTransform NewTransform = GetTransform();
-				FVector NewLocation = NewTransform.GetLocation();
-				NewLocation.X += FMath::FRandRange(-100.0, 100.0);
-				NewLocation.Y += FMath::FRandRange(-100.0, 100.0);
-				NewTransform.SetLocation(NewLocation);
-				//AActor* Spawned = GetWorld()->SpawnActor<AActor>(PickUpWeponActor, NewTransform, SpawnParam);
-				//APickupWeapon* SpawnedWeaponPickUp = Cast<APickupWeapon>(Spawned);
-				//SpawnedWeaponPickUp->Init(DropTableRow->DropItemAsset.LoadSynchronous());
-
-				if (!GameInstance) continue;
-				UObjectPoolSubsystem* SubSystem = GameInstance->GetSubsystem<UObjectPoolSubsystem>();
-				APickupWeapon* SpawnedWeaponPickUp = SubSystem->Spawn(PickUpWeponActor, NewTransform);
-				SpawnedWeaponPickUp->Init(DropTableRow->DropItemAsset.LoadSynchronous());
-				UE_LOG(LogTemp, Log, TEXT("%s Spawned, spawn rate : %f"), *(DropTableRow->DropItemAsset.GetAssetName()), currentItemSpawnRate);
-			}
-
+			if (!GameInstance) continue;
+			UObjectPoolSubsystem* SubSystem = GameInstance->GetSubsystem<UObjectPoolSubsystem>();
+			APickupWeapon* SpawnedWeaponPickUp = SubSystem->Spawn(PickUpWeponActor, NewTransform);
+			SpawnedWeaponPickUp->Init(DropTableRow->DropItemAsset.LoadSynchronous());
+			UE_LOG(LogTemp, Log, TEXT("%s Spawned, spawn rate : %f"), *(DropTableRow->DropItemAsset.GetAssetName()), currentItemSpawnRate);
 		}
 
 	}

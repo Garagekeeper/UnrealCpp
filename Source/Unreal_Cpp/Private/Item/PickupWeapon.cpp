@@ -38,7 +38,7 @@ void APickupWeapon::OnPickUp(AActor* InTarget)
 void APickupWeapon::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	if (WeaponData)
+	if (WeaponData.IsValid())
 	{
 		// 여기서는 바로 로딩되는게 좋음
 		// 내부에서 get에서 있으면 바로 리턴 없으면 로드
@@ -73,8 +73,9 @@ void APickupWeapon::Init(UPrimaryDataAsset* asset)
 {
 	Super::Init(asset);
 	if (!asset) return;
-	if (WeaponData = Cast<UWeaponDataAsset>(asset))
+	if (UWeaponDataAsset* Casted = Cast<UWeaponDataAsset>(asset))
 	{
+		WeaponData = Casted;
 		if (USkeletalMesh* SkeletalData = WeaponData->Mesh.LoadSynchronous())
 		{
 			Mesh->SetSkeletalMesh(SkeletalData);
@@ -163,7 +164,7 @@ void APickupWeapon::MoveToplayerWithTimerDone()
 	GetWorldTimerManager().ClearTimer(PickupEffectTimerHandle);
 	if (Target.IsValid() )
 	{
-		IWeaponUserInterface::Execute_EquipWeapon(Target.Get(), WeaponData);
+		IWeaponUserInterface::Execute_EquipWeapon(Target.Get(), WeaponData.Get());
 		if (UGameInstance* GameInstance = GetGameInstance())
 		{
 			UObjectPoolSubsystem* SubSystem = GameInstance->GetSubsystem<UObjectPoolSubsystem>();
@@ -180,7 +181,7 @@ void APickupWeapon::OnHitAreaBeginOverlap(UPrimitiveComponent* InOverlappedCompo
 	{
 		if (InOtherActor == Target.Get())
 		{
-			IWeaponUserInterface::Execute_EquipWeapon(InOtherActor, WeaponData);
+			IWeaponUserInterface::Execute_EquipWeapon(InOtherActor, WeaponData.Get());
 
 			if (UGameInstance* GameInstance = GetGameInstance())
 			{

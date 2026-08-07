@@ -68,6 +68,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Data")
 	FVector OffsetInitBP = FVector(0.0f, 0, 20);
 
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Data")
+	TObjectPtr<UWeaponDataAsset> DataAsset = nullptr;
+
 	FVector InitPos;
 	bool bFollow = false;
 	float Elapsed = 0;

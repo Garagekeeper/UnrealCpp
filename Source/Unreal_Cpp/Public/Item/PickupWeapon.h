@@ -22,7 +22,7 @@ public:
 
 	void SetDataAssetToPickup(UWeaponDataAsset* asset)
 	{
-		WeaponData = asset;
+		DataAsset = asset;
 	}
 	virtual void Init(UPrimaryDataAsset* asset) override;
 	
@@ -63,10 +63,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup Transform")
 	TObjectPtr<UCurveFloat> ScaleCurve;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Data")
-	TObjectPtr<UWeaponDataAsset> WeaponData = nullptr;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Data")
+	TWeakObjectPtr<UWeaponDataAsset> WeaponData = nullptr;
 
 
 
@@ -77,9 +76,7 @@ private:
 	FTimerHandle PickupEffectTimerHandle;
 	
 
-	
 	float popHeight = 50.0f;
-
 	const float TimerInterval = 0.02f;
 	float ElapsedForTimer = 0;
 	float PickUpEffectDuration = 0.5f;
