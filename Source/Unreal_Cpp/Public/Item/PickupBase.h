@@ -10,6 +10,7 @@
 class USphereComponent;
 class UStaticMeshComponent;
 class UNiagaraComponent;
+class UItemDataAsset;
 
 UCLASS()
 class UNREAL_CPP_API APickupBase : public AActor, public IPoolable
@@ -22,7 +23,7 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	virtual void ReturnPoolObject() override;
-	virtual void Init(UPrimaryDataAsset* asset);
+	virtual void Init(UItemDataAsset* asset);
 
 	void Onspawn_Implementation();
 	void OnReturn_Implementation();
@@ -36,6 +37,7 @@ protected:
 	virtual void Tick(float DeltaTime) override;
 	virtual void OnPickUp(AActor* InActor);
 	virtual void MoveupDownAndSpinWithTick();
+	virtual UMeshComponent* GetMesh() const ;
 
 private:
 	bool IsCurveReady() const;
@@ -50,10 +52,6 @@ protected:
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USphereComponent> DetectSphereCollision = nullptr;
-
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<USkeletalMeshComponent> Mesh = nullptr;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UNiagaraComponent> NiagaraComponent;
@@ -70,7 +68,7 @@ protected:
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Data")
-	TObjectPtr<UWeaponDataAsset> DataAsset = nullptr;
+	TObjectPtr<UItemDataAsset> DataAsset = nullptr;
 
 	FVector InitPos;
 	bool bFollow = false;

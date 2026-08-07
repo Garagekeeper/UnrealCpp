@@ -117,7 +117,11 @@ void UStatComponent::ApplyDamage_Implementation(float InAmount)
 	if (CurrentHealth <= 0.0f)
 	{
 		CurrentHealth = 0;
-		OnDeath.Broadcast();
+		if (bAlive)
+		{
+			OnDeath.Broadcast();
+		}
+		bAlive = false;
 	}
 
 	OnHealthChange.Broadcast(CurrentHealth, MaxHealth);

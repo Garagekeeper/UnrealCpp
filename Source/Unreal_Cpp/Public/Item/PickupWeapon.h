@@ -24,7 +24,7 @@ public:
 	{
 		DataAsset = asset;
 	}
-	virtual void Init(UPrimaryDataAsset* asset) override;
+	virtual void Init(UItemDataAsset* asset) override;
 	
 protected:
 	virtual void OnPickUp(AActor* OtherActor) override;
@@ -32,6 +32,7 @@ protected:
 	virtual void Tick(float DeltaTime) override;
 	virtual void BeginPlay() override;
 	void DetectPickUp();
+	virtual UMeshComponent* GetMesh() const override;
 
 
 	UFUNCTION()
@@ -67,6 +68,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Data")
 	TWeakObjectPtr<UWeaponDataAsset> WeaponData = nullptr;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<USkeletalMeshComponent> Mesh = nullptr;
 
 
 

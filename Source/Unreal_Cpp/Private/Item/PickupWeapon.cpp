@@ -15,6 +15,9 @@ APickupWeapon::APickupWeapon()
 	PickSphereCollision = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionTest"));
 	PickSphereCollision->InitSphereRadius(10.0f);
 	PickSphereCollision->SetupAttachment(RootComponent);
+
+	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
+	Mesh->SetupAttachment(RootComponent);
 }
 
 void APickupWeapon::OnPickUp(AActor* InTarget)
@@ -45,7 +48,7 @@ void APickupWeapon::OnConstruction(const FTransform& Transform)
 		if (USkeletalMesh* SkeletalData = WeaponData->Mesh.LoadSynchronous())
 		{
 			Mesh->SetSkeletalMesh(SkeletalData);
-			Mesh->SetRelativeLocation(OffsetInitBP + WeaponData->LocationOffset);
+			Mesh->SetRelativeLocation(OffsetInitBP + WeaponData->SpwanLocationOffset);
 		}
 	}
 }
@@ -69,7 +72,7 @@ void APickupWeapon::BeginPlay()
 
 }
 
-void APickupWeapon::Init(UPrimaryDataAsset* asset)
+void APickupWeapon::Init(UItemDataAsset* asset)
 {
 	Super::Init(asset);
 	if (!asset) return;
@@ -80,7 +83,7 @@ void APickupWeapon::Init(UPrimaryDataAsset* asset)
 		{
 			Mesh->SetSkeletalMesh(SkeletalData);
 			Mesh->SetWorldLocation(FVector::ZeroVector);
-			Mesh->SetRelativeLocation(OffsetInitBP + WeaponData->LocationOffset);
+			Mesh->SetRelativeLocation(OffsetInitBP + WeaponData->SpwanLocationOffset);
 			ElapsedForTimer = 0;
 			NiagaraComponent->Activate();
 
@@ -119,6 +122,11 @@ void APickupWeapon::DetectPickUp()
 		MoveToplayerWithTimerDone();
 	}
 
+}
+
+UMeshComponent* APickupWeapon::GetMesh() const
+{
+	return Mesh;
 }
 
 void APickupWeapon::MoveToPlayerWithTick()

@@ -13,7 +13,7 @@ struct FItemDropTableRow : public FTableRowBase
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSoftObjectPtr<UWeaponDataAsset> DropItemAsset;
+	TObjectPtr<UItemDataAsset> DropItemAsset;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ClampMin = "0", ClampMax = "1"))
 	float DropRate = 0.5f;

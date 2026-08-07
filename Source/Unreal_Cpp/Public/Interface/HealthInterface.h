@@ -35,4 +35,6 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Health")
 	float GetMaxHealth() const;
 
+	virtual bool IsAlive() const = 0;
+
 };

@@ -2,7 +2,7 @@
 
 
 #include "Item/PickupBase.h"
-#include "Components/StaticMeshComponent.h"
+#include "Components/MeshComponent.h"
 #include "Components/SphereComponent.h"
 #include "Interface/StatHolder.h"
 #include "NiagaraFunctionLibrary.h"
@@ -22,8 +22,7 @@ APickupBase::APickupBase()
 	DetectSphereCollision->SetCollisionResponseToChannel(ECC_Player, ECR_Overlap);
 	SetRootComponent(DetectSphereCollision);
 
-	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
-	Mesh->SetupAttachment(RootComponent);
+
 
 	NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("VFX"));
 	NiagaraComponent->SetupAttachment(RootComponent);
@@ -34,10 +33,14 @@ void APickupBase::ReturnPoolObject()
 
 }
 
-void APickupBase::Init(UPrimaryDataAsset* asset)
+void APickupBase::Init(UItemDataAsset* asset)
 {
 	SetActorScale3D(FVector::OneVector);
-	Mesh->SetRelativeLocation(FVector::ZeroVector);
+
+	if (UMeshComponent* PickupMesh = GetMesh())
+	{
+		PickupMesh->SetRelativeLocation(FVector::ZeroVector);
+	}
 	bFollow = false;
 	Elapsed = 0;
 	DetectSphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
@@ -103,16 +106,26 @@ void APickupBase::MoveupDownAndSpinWithTick()
 	//	Elapsed -= 3.0f;
 	//float Dz = UpDownCurve->GetFloatValue(Elapsed) * MoveWidth;
 	//SetActorLocation(InitPos + FVector(0, 0, Dz));
-	UpDownDuration = UpDownDuration <= 0 ? 0.0001f : UpDownDuration;
-	float Progress = FMath::Fmod(Elapsed / UpDownDuration, 1.0f);
 
-	FVector NewMeshLocation = OffsetInitBP;
-	NewMeshLocation.Z += UpDownCurve->GetFloatValue(Progress) * MoveWidth;
 
-	Mesh->SetRelativeLocation(NewMeshLocation);
+	if (UMeshComponent* PickupMesh = GetMesh())
+	{
+		UpDownDuration = UpDownDuration <= 0 ? 0.0001f : UpDownDuration;
+		float Progress = FMath::Fmod(Elapsed / UpDownDuration, 1.0f);
 
-	float NewAngle = SpinCurve->GetFloatValue(Progress) * 360.0f;
-	Mesh->SetRelativeRotation(FRotator(0.0f, NewAngle, 0.0f));
+		FVector NewMeshLocation = OffsetInitBP;
+		NewMeshLocation.Z += UpDownCurve->GetFloatValue(Progress) * MoveWidth;
+		PickupMesh->SetRelativeLocation(NewMeshLocation);
+
+		float NewAngle = SpinCurve->GetFloatValue(Progress) * 360.0f;
+		PickupMesh->SetRelativeRotation(FRotator(0.0f, NewAngle, 0.0f));
+	}
+
+
+}
+UMeshComponent* APickupBase::GetMesh() const
+{
+	return nullptr;
 }
 
 

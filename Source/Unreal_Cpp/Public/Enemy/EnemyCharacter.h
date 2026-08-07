@@ -10,6 +10,7 @@
 
 class UStatComponent;
 class APickupWeapon;
+class UItemDataAsset;
 
 UCLASS()
 class UNREAL_CPP_API AEnemyCharacter : public ACharacter, public IStatHolder
@@ -35,6 +36,7 @@ protected:
 
 	float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser);
 
+
 private:
 	void DropItem();
 
@@ -44,8 +46,7 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UDataTable> ItemDropTable;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<APickupWeapon> PickUpWeponActor;
 	
 };
+
+

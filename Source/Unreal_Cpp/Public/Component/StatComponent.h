@@ -49,6 +49,9 @@ public:
 	virtual void ApplyHeal_Implementation(float InAmount) override;
 	virtual float GetMaxHealth_Implementation() const override;
 
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	virtual bool IsAlive() const override { return bAlive; }
+
 	
 	// Delegate
 	UPROPERTY(BlueprintAssignable, Category = "Stat|Stamina"  )
@@ -99,4 +102,6 @@ private:
 	
 	// 스테미너 자동 회복용 데이터
 	FAutoRecoveryData StaminaRecoveryData;
+
+	bool bAlive = true;
 };

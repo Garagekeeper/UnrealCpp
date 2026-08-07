@@ -211,9 +211,6 @@ void AWeaponActor::SetActivator(bool bActive)
 
 	// 3. Toggle Actor Collision
 	SetActorEnableCollision(bActive);
-
-	
-
 }
 
 
@@ -223,6 +220,6 @@ void AWeaponActor::OnHitAreaBeginOverlap(UPrimitiveComponent* InOverlappedCompon
 	if (!WeaponData) return;
 
 	//UE_LOG(LogTemp, Log, TEXT("오버랩 된 대상 : %s"), *InOtherActor->GetName());
-	float Remain = UGameplayStatics::ApplyDamage(InOtherActor, AttackDamage, OwnerCharacter->GetController(), this, nullptr);
+	float Remain = UGameplayStatics::ApplyDamage(InOtherActor, WeaponData->AttackDamage, OwnerCharacter->GetController(), this, nullptr);
 }
 

@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "Engine/StreamableManager.h"
+#include "Data/Item/ItemDataAsset.h"
 #include "WeaponDataAsset.generated.h"
 
 class USkeletalMesh;
@@ -12,13 +13,16 @@ class UNiagaraSystem;
  * 
  */
 UCLASS()
-class UNREAL_CPP_API UWeaponDataAsset : public UPrimaryDataAsset
+class UNREAL_CPP_API UWeaponDataAsset : public UItemDataAsset
 {
 	GENERATED_BODY()
 	
 public:
-	TSharedPtr<FStreamableHandle> RequestDataLoad(FStreamableDelegate InDelegate);
-	bool IsLoaded() const;
+	//TSharedPtr<FStreamableHandle> RequestDataLoad(FStreamableDelegate InDelegate);
+	virtual bool IsLoaded() const override;
+
+protected:
+	virtual void OnAsyncRequest(TArray<FSoftObjectPath>& InOutArray) const override;
 
 public:
 
