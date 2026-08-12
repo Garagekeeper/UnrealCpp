@@ -27,12 +27,15 @@ ENUM_CLASS_FLAGS(EDirType);
 struct UNREAL_CPP_API FCellData
 {
 public:
+	virtual ~FCellData() = default;
+
+public:
 	// 셀의 좌표를 가져오는 함수
 	inline FIntPoint GetLocation() const { return FIntPoint(PosX, PosY); }
 	inline void AddPath(EDirType InAddedPath) { PathCanGo |= InAddedPath; }
-	inline bool IsPath(EDirType InCheck) { return (PathCanGo & InCheck) == InCheck; }
+	inline bool IsPath(EDirType InCheck) const { return (PathCanGo & InCheck) == InCheck; }
 	//inline bool IsPath(EDirType InCheck) { return EnumHasAnyFlags(PathCanGo, InCheck); }
-	inline bool IsWall(EDirType InCheck) { return !IsPath(InCheck); }
+	inline bool IsWall(EDirType InCheck) const { return !IsPath(InCheck); }
 
 public:
 	uint8 PosX = 0;
@@ -46,4 +49,13 @@ public:
 
 	// 미로 생성 과정에서 다음셀을 기록하기 위한 변수
 	FCellData* NextCell = nullptr;
+};
+
+struct UNREAL_CPP_API FEllerCellData : public FCellData
+{
+public:
+	int SetID = 0;
+
+public:
+	virtual ~FEllerCellData() override = default;
 };
