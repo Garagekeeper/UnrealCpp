@@ -35,7 +35,7 @@ FInventorySlot* UInventoryComponent::GetSlot(int InSlotIndex)
 	return nullptr;
 }
 
-FInventorySlot* UInventoryComponent::GetTempSlot(int InSlotIndex)
+FInventorySlot* UInventoryComponent::GetTempSlot()
 {
 	return nullptr;
 }

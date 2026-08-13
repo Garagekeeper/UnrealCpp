@@ -30,7 +30,7 @@ public:
 	inline int32		GetCnt() const { return StackCnt; }
 	inline void			SetCnt(int32 InCount) 
 	{
-		if (ItemData && InCount > 0)
+		if (ItemData && InCount >= 0)
 		{
 			StackCnt = FMath::Clamp(InCount, 0, ItemData->MaxStackCnt);
 		}
@@ -61,7 +61,7 @@ public:
 	-----------------------------*/
 	inline int32		GetMoney() const { return Money; }
 	FInventorySlot*		GetSlot(int InSlotIndex);
-	FInventorySlot*		GetTempSlot(int InSlotIndex);
+	FInventorySlot*		GetTempSlot();
 
 
 protected:
