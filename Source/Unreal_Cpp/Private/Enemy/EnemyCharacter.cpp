@@ -76,7 +76,8 @@ void AEnemyCharacter::DropItem()
 
 		UGameInstance* GameInstance = GetGameInstance();
 		if (!GameInstance) return;
-		UPickupFactorySubsystem* SubSystem = GameInstance->GetSubsystem<UPickupFactorySubsystem>();
+		//UPickupFactorySubsystem* SubSystem = GameInstance->GetSubsystem<UPickupFactorySubsystem>();
+		UPickupFactorySubsystem* SubSystem = GetWorld()->GetSubsystem<UPickupFactorySubsystem>();
 
 		FActorSpawnParameters SpawnParam;
 		SpawnParam.Owner = nullptr;
@@ -86,25 +87,38 @@ void AEnemyCharacter::DropItem()
 		NewLocation.X += FMath::FRandRange(-100.0, 100.0);
 		NewLocation.Y += FMath::FRandRange(-100.0, 100.0);
 		NewTransform.SetLocation(NewLocation);
-		
-		if (!PickupData->IsLoaded())
+
+		FOnpickupSpawned Delegate;
+		Delegate.BindDynamic(this, &AEnemyCharacter::OnItemSpawnd);
+
+		if (SubSystem)
 		{
-			PickupData->RequestDataLoad(
-				FStreamableDelegate::CreateWeakLambda(
-					this,
-					[this, SubSystem, PickupData, NewTransform]()
-					{
-						SubSystem->SpawnPickup(PickupData, NewTransform);
-					}
-				)
-			);
-		}
-		else
-		{
-			SubSystem->SpawnPickup(PickupData, NewTransform);
+			SubSystem->SpawnPickupAsync(PickupData, NewTransform, Delegate);
 		}
 
+		//if (!PickupData->IsLoaded())
+		//{
+		//	PickupData->RequestDataLoad(
+		//		FStreamableDelegate::CreateWeakLambda(
+		//			this,
+		//			[this, SubSystem, PickupData, NewTransform, Delegate]()
+		//			{
+		//				SubSystem->SpawnPickupAsync(PickupData, NewTransform, Delegate);
+		//			}
+		//		)
+		//	);
+		//}
+		//else
+		//{
+		//	//SubSystem->SpawnPickup(PickupData, NewTransform);
+		//}
+
 	}
+}
+
+void AEnemyCharacter::OnItemSpawnd(APickupBase* Spawned)
+{
+	
 }
 
 

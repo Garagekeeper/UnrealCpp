@@ -40,6 +40,9 @@ protected:
 private:
 	void DropItem();
 
+	UFUNCTION()
+	void OnItemSpawnd(APickupBase* Spawned);
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UStatComponent> StatComp;

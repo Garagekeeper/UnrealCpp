@@ -33,6 +33,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base|Data")
 	int32 Price = 1;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base|Data")
+	int32 MaxStackCnt = 1;
+
 	// 스폰시의 오프셋
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base|Spawn")
 	FVector SpwanLocationOffset = FVector::ZeroVector;
