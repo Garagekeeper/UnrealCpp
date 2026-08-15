@@ -20,7 +20,9 @@ class UNREAL_CPP_API UPickupFactorySubsystem : public UWorldSubsystem
 	
 public:
 	UFUNCTION(BlueprintCallable, Category = "Factory|Pickup")
-	APickupBase* SpawnPickup(UItemDataAsset* InData, const FTransform& InTransForm);
+	APickupBase* SpawnPickup(const UItemDataAsset* InData, const FTransform& InTransForm);
+
+	void SpawnPickupAsync(const UItemDataAsset* InData, const FTransform& InTransForm);
 
 	UFUNCTION(BlueprintCallable, Category = "Factory|Pickup")
 	void SpawnPickupAsync(UItemDataAsset* InData, const FTransform& InTransForm, FOnpickupSpawned OnSpawned);
@@ -30,7 +32,7 @@ public:
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
 
 private:
-	APickupBase* SpawnProcess(UItemDataAsset* InData, const FTransform& InTransForm);
+	APickupBase* SpawnProcess(const UItemDataAsset* InData, const FTransform& InTransForm);
 	void CleanupCompletedHandles();
 
 private:

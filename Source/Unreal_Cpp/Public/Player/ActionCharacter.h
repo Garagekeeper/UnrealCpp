@@ -7,17 +7,19 @@
 #include "InputactionValue.h"
 #include "Interface/StatHolder.h"
 #include "Interface/WeaponUserInterface.h"
+#include "Interface/InventoryUserInterface.h"
 #include "ActionCharacter.generated.h"
 
 class USpringArmComponent;
 class UCameraComponent;
-class UStatComponent;
+//class UStatComponent;
 class UAnimNotifyState_SectionJump;
 class AWeaponActor;
-class UWeaponDataAsset;
+//class UWeaponDataAsset;
 
 UCLASS()
-class UNREAL_CPP_API AActionCharacter : public ACharacter, public IStatHolder, public IWeaponUserInterface
+class UNREAL_CPP_API AActionCharacter : 
+	public ACharacter, public IStatHolder, public IWeaponUserInterface, public IInventoryUserInterface
 {
 	GENERATED_BODY()
 
@@ -25,7 +27,7 @@ public:
 	// Sets default values for this character's properties
 	AActionCharacter();
 
-	virtual void EquipWeapon_Implementation(UWeaponDataAsset* InWeaponData) override;
+	virtual void EquipWeapon_Implementation(const UWeaponDataAsset* InWeaponData) override;
 
 	// Gettet Setter
 	// virtual UStatComponent* GetStatComponent_Implementation() const override;
@@ -34,6 +36,10 @@ public:
 	{
 		return OnWeaponAttackStateChaned;
 	};
+
+	virtual UInventoryComponent* GetInventoryComponent() const override;
+	UFUNCTION(BlueprintCallable)
+	virtual bool ExecuteInventoryCommand(const FInventoryCommand& Command, FCommandResult& OutResult) const override;
 
 
 	// 이벤트 함수
@@ -134,13 +140,13 @@ protected:
 	TWeakObjectPtr<AWeaponActor> CurrentWeapon = nullptr;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
-	TObjectPtr<UWeaponDataAsset> CurrentWeaponData = nullptr;
+	TObjectPtr<const UWeaponDataAsset> CurrentWeaponData = nullptr;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
 	TObjectPtr<AWeaponActor> BaseWeapon = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")
-	TObjectPtr<UWeaponDataAsset> BaseWeaponData = nullptr;
+	TObjectPtr<const UWeaponDataAsset> BaseWeaponData = nullptr;
 
 	
 
@@ -153,6 +159,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UStatComponent> StatComponent = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UInventoryComponent> InvenComponent = nullptr;
 
 private:
 	UPROPERTY()

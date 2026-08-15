@@ -42,3 +42,8 @@ void APickupEffect::OnPickUp(AActor* OtherActor)
 
 	}
 }
+
+UMeshComponent* APickupEffect::GetMesh() const
+{
+	return nullptr;
+}

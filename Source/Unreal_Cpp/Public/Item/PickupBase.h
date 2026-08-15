@@ -23,7 +23,7 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	virtual void ReturnPoolObject() override;
-	virtual void Init(UItemDataAsset* asset);
+	virtual void Init(const UItemDataAsset* asset);
 
 	void Onspawn_Implementation();
 	void OnReturn_Implementation();
@@ -39,8 +39,13 @@ protected:
 	virtual void MoveupDownAndSpinWithTick();
 	virtual UMeshComponent* GetMesh() const ;
 
+
+	virtual bool IsCurveReady() const;
+	virtual void DetectPickUp();
+	virtual void MoveToPlayerWithTimer();
+	virtual void MoveToplayerWithTimerDone();
+
 private:
-	bool IsCurveReady() const;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup Transform")
@@ -48,6 +53,15 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup Transform")
 	TObjectPtr<UCurveFloat> SpinCurve;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup Transform")
+	TObjectPtr<UCurveFloat> PosCurve;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup Transform")
+	TObjectPtr<UCurveFloat> HeightCurve;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup Transform")
+	TObjectPtr<UCurveFloat> ScaleCurve;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -69,6 +83,15 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Data")
 	TObjectPtr<UItemDataAsset> DataAsset = nullptr;
+
+	TWeakObjectPtr<AActor> Target;
+	FTimerHandle PickupEffectTimerHandle;
+	FTimerHandle PickupCollisionTimerHandle;
+
+	float popHeight = 50.0f;
+	const float TimerInterval = 0.02f;
+	float ElapsedForTimer = 0;
+	float PickUpEffectDuration = 0.5f;
 
 	FVector InitPos;
 	bool bFollow = false;

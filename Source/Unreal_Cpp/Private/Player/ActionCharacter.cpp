@@ -13,6 +13,7 @@
 #include "Data/WeaponDataAsset.h"
 #include "Weapon/WeaponActor.h"
 #include "Unreal_Cpp/Unreal_Cpp.h"
+#include "Component/InventoryComponent.h"
 
 // Sets default values
 AActionCharacter::AActionCharacter()
@@ -27,13 +28,14 @@ AActionCharacter::AActionCharacter()
 	CameraComponent->SetupAttachment(CameraSpringArmComponent);
 
 	StatComponent = CreateDefaultSubobject<UStatComponent>(TEXT("StatComponent"));
+	InvenComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InvenComponent"));
 
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	CameraSpringArmComponent->bUsePawnControlRotation = true;
 }
 
-void AActionCharacter::EquipWeapon_Implementation(UWeaponDataAsset* InWeaponData)
+void AActionCharacter::EquipWeapon_Implementation(const UWeaponDataAsset* InWeaponData)
 {
 	if (!InWeaponData)
 	{
@@ -50,7 +52,7 @@ void AActionCharacter::EquipWeapon_Implementation(UWeaponDataAsset* InWeaponData
 			CurrentWeaponData = BaseWeaponData;
 			if (!BaseWeaponData->IsLoaded())
 			{
-				UWeaponDataAsset* Requested = BaseWeaponData;
+				const UWeaponDataAsset* Requested = BaseWeaponData;
 				BaseWeaponData->RequestDataLoad(
 					//로딩이 완료 되었을 때 실행되는 람다
 					FStreamableDelegate::CreateWeakLambda(this, [this, Requested]() {
@@ -94,7 +96,7 @@ void AActionCharacter::EquipWeapon_Implementation(UWeaponDataAsset* InWeaponData
 			CurrentWeaponData = InWeaponData;
 			if (!CurrentWeaponData->IsLoaded())
 			{
-				UWeaponDataAsset* Requested = CurrentWeaponData;
+				const UWeaponDataAsset* Requested = CurrentWeaponData;
 				CurrentWeaponData->RequestDataLoad(
 					//로딩이 완료 되었을 때 실행되는 람다
 					FStreamableDelegate::CreateWeakLambda(this, [this, Requested]() {
@@ -125,6 +127,21 @@ void AActionCharacter::EquipWeapon_Implementation(UWeaponDataAsset* InWeaponData
 UStatComponent* AActionCharacter::GetStatComponent() const
 {
 	return StatComponent;
+}
+
+UInventoryComponent* AActionCharacter::GetInventoryComponent() const
+{
+	return InvenComponent;
+}
+
+bool AActionCharacter::ExecuteInventoryCommand(const FInventoryCommand& Command, FCommandResult& OutResult) const
+{
+	if (GetInventoryComponent())
+	{
+		return InvenComponent->ExecuteCommand(Command, OutResult);
+	}
+
+	return false;
 }
 
 void AActionCharacter::OnWeaponAttackState(bool bEnable)

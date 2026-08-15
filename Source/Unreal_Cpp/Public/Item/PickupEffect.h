@@ -16,7 +16,7 @@ class UNREAL_CPP_API APickupEffect : public APickupBase
 	
 protected:
 	virtual void OnPickUp(AActor* InTarget) override;
-
+	virtual UMeshComponent* GetMesh() const override;
 	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

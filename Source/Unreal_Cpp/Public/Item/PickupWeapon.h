@@ -24,14 +24,14 @@ public:
 	{
 		DataAsset = asset;
 	}
-	virtual void Init(UItemDataAsset* asset) override;
+	virtual void Init(const UItemDataAsset* asset) override;
 	
 protected:
 	virtual void OnPickUp(AActor* OtherActor) override;
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void BeginPlay() override;
-	void DetectPickUp();
+	virtual void DetectPickUp() override;
 	virtual UMeshComponent* GetMesh() const override;
 
 
@@ -45,28 +45,28 @@ protected:
 		const FHitResult& InSweepResult
 	);
 
-	virtual void MoveToPlayerWithTimer();
-	virtual void MoveToplayerWithTimerDone();
+	//virtual void MoveToPlayerWithTimer();
+	virtual void MoveToplayerWithTimerDone() override;
 
 private:
 	void MoveToPlayerWithTick();
-	bool IsAssetReady() const;
+	//bool IsAssetReady() const;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USphereComponent> PickSphereCollision = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup Transform")
-	TObjectPtr<UCurveFloat> PosCurve;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup Transform")
+	//TObjectPtr<UCurveFloat> PosCurve;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup Transform")
-	TObjectPtr<UCurveFloat> HeightCurve;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup Transform")
+	//TObjectPtr<UCurveFloat> HeightCurve;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup Transform")
-	TObjectPtr<UCurveFloat> ScaleCurve;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup Transform")
+	//TObjectPtr<UCurveFloat> ScaleCurve;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Data")
-	TWeakObjectPtr<UWeaponDataAsset> WeaponData = nullptr;
+	TWeakObjectPtr<const UWeaponDataAsset> WeaponData = nullptr;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USkeletalMeshComponent> Mesh = nullptr;
@@ -75,13 +75,13 @@ protected:
 
 
 private:
-	TWeakObjectPtr<AActor> Target;
-	FTimerHandle PickupEffectTimerHandle;
+	//TWeakObjectPtr<AActor> Target;
+	//FTimerHandle PickupEffectTimerHandle;
 	
 
-	float popHeight = 50.0f;
-	const float TimerInterval = 0.02f;
-	float ElapsedForTimer = 0;
-	float PickUpEffectDuration = 0.5f;
+	//float popHeight = 50.0f;
+	//const float TimerInterval = 0.02f;
+	//float ElapsedForTimer = 0;
+	//float PickUpEffectDuration = 0.5f;
 	
 };

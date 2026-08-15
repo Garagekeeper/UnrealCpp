@@ -19,16 +19,17 @@ class UNREAL_CPP_API APickupMisc : public APickupBase
 	
 public:
 	APickupMisc();
-	virtual void Init(UItemDataAsset* asset);
+	virtual void Init(const UItemDataAsset* asset);
 
 protected:
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual UMeshComponent* GetMesh() const override;
+	virtual void MoveToplayerWithTimerDone() override;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UStaticMeshComponent> Mesh = nullptr;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TWeakObjectPtr<UMiscItemDataAsset> MiscData;
+	TWeakObjectPtr<const UMiscItemDataAsset> MiscData;
 };

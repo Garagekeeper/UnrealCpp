@@ -4,7 +4,7 @@
 #include "Framework/SubSystem/PickupFactorySubsystem.h"
 #include "Framework/SubSystem/ObjectPoolSubsystem.h"
 
-APickupBase* UPickupFactorySubsystem::SpawnPickup(UItemDataAsset* InData, const FTransform& InTransForm)
+APickupBase* UPickupFactorySubsystem::SpawnPickup(const UItemDataAsset* InData, const FTransform& InTransForm)
 {
 	if (!InData)
 	{
@@ -20,6 +20,52 @@ APickupBase* UPickupFactorySubsystem::SpawnPickup(UItemDataAsset* InData, const 
 
 	return SpawnProcess(InData, InTransForm);
 
+}
+
+void UPickupFactorySubsystem::SpawnPickupAsync(const UItemDataAsset* InData, const FTransform& InTransForm)
+{
+	if (!InData)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UPickupFactorySubsystem] : UItemDataAsset* InData was nullptr"));
+		return;
+	}
+
+	if (InData->IsLoaded())
+	{
+		APickupBase* SpawnedWeaponPickUp = SpawnProcess(InData, InTransForm);
+		return;
+	}
+
+	TWeakObjectPtr<const UItemDataAsset> WeakDataAsset = InData;
+	TSharedPtr<FStreamableHandle> AsyncHandle = InData->RequestDataLoad(
+		FStreamableDelegate::CreateWeakLambda(
+			this,
+			[this, WeakDataAsset, InTransForm]()
+			{
+				if (!WeakDataAsset.IsValid())
+				{
+					UE_LOG(LogTemp, Warning, TEXT("[UPickupFactorySubsystem] : In AsyncLoading Data asset was invalid"));
+					CleanupCompletedHandles();
+					return;
+				}
+
+				//로딩 시작
+				const UItemDataAsset* LoadedAsset = WeakDataAsset.Get();
+				APickupBase* Spawned = SpawnProcess(LoadedAsset, InTransForm);
+				UE_LOG(LogTemp, Log, TEXT("[UPickupFactorySubsystem] : %s AsyncLoading completed"), *(LoadedAsset->DisplayName).ToString());
+				CleanupCompletedHandles();
+			}
+		)
+	);
+
+	if (AsyncHandle.IsValid())
+	{
+		ActiveStreamableHandles.Add(AsyncHandle);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UPickupFactorySubsystem] : AsyncLoad Request was failed"));
+	}
 }
 
 void UPickupFactorySubsystem::SpawnPickupAsync(UItemDataAsset* InData, const FTransform& InTransForm, FOnpickupSpawned OnSpawned)
@@ -105,7 +151,7 @@ bool UPickupFactorySubsystem::ShouldCreateSubsystem(UObject* Outer) const
 	return true;
 }
 
-APickupBase* UPickupFactorySubsystem::SpawnProcess(UItemDataAsset* InData, const FTransform& InTransForm)
+APickupBase* UPickupFactorySubsystem::SpawnProcess(const UItemDataAsset* InData, const FTransform& InTransForm)
 {
 	UWorld* World = GetWorld();
 	if (!World)

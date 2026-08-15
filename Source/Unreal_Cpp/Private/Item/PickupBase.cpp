@@ -10,6 +10,7 @@
 #include "Framework/SubSystem/ObjectPoolSubsystem.h"
 #include "Unreal_Cpp/Unreal_Cpp.h"
 
+
 // Sets default values
 APickupBase::APickupBase()
 {
@@ -33,7 +34,7 @@ void APickupBase::ReturnPoolObject()
 
 }
 
-void APickupBase::Init(UItemDataAsset* asset)
+void APickupBase::Init(const UItemDataAsset* asset)
 {
 	SetActorScale3D(FVector::OneVector);
 
@@ -49,8 +50,28 @@ void APickupBase::Init(UItemDataAsset* asset)
 void APickupBase::Onspawn_Implementation()
 {
 	SetActorHiddenInGame(false);
-	SetActorEnableCollision(true);
+	SetActorEnableCollision(false);
 	SetActorTickEnabled(true);
+	DetectSphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	GetWorldTimerManager().ClearTimer(PickupEffectTimerHandle);
+	Target = nullptr;
+	InitPos = GetActorLocation();
+	bFollow = false;
+	Elapsed = 0;
+	ElapsedForTimer = 0;
+
+	GetWorldTimerManager().SetTimer(
+		PickupCollisionTimerHandle,
+		FTimerDelegate::CreateLambda(
+			[this]() 
+			{
+				this->SetActorEnableCollision(true);
+				DetectSphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+			}),
+		1,
+		false
+	);
 }
 
 void APickupBase::OnReturn_Implementation()
@@ -92,21 +113,84 @@ void APickupBase::Tick(float DeltaTime)
 
 void APickupBase::OnPickUp(AActor* InActor)
 {
-
+	Target = InActor;
+	DetectPickUp();
 }
 
 bool APickupBase::IsCurveReady() const
 {
-	return UpDownCurve != nullptr;;
+	return UpDownCurve != nullptr && PosCurve != nullptr && HeightCurve != nullptr 
+		&& ScaleCurve != nullptr && SpinCurve != nullptr;
+}
+
+void APickupBase::DetectPickUp()
+{
+
+	// 내 풀이
+	bFollow = true;
+	NiagaraComponent->Deactivate();
+	InitPos = GetActorLocation();
+	DetectSphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SetActorEnableCollision(false);
+	
+	// 타이머 기반 풀이
+
+	if (IsCurveReady())
+	{
+		// 해당 타이머가 작동중dlaus 종료
+		if (GetWorldTimerManager().IsTimerActive(PickupEffectTimerHandle)) return;
+
+		DetectSphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		ElapsedForTimer = 0.0f;
+		GetWorldTimerManager().SetTimer(
+			PickupEffectTimerHandle,
+			this,
+			&APickupBase::MoveToPlayerWithTimer,
+			TimerInterval,
+			true
+		);
+	}
+	else
+	{
+		MoveToplayerWithTimerDone();
+	}
+
+}
+
+void APickupBase::MoveToPlayerWithTimer()
+{
+	if (!GetMesh()) return;
+	if (!Target.IsValid())
+	{
+		MoveToplayerWithTimerDone();
+		return;
+	}
+
+	ElapsedForTimer += TimerInterval;
+
+	PickUpEffectDuration = PickUpEffectDuration <= 0 ? 0.0001f : PickUpEffectDuration;
+	float Progress = ElapsedForTimer / PickUpEffectDuration;
+	if (Progress >= 1.0f)
+	{
+		MoveToplayerWithTimerDone();
+		return;
+	}
+
+
+	FVector NewVec = FMath::Lerp(GetActorLocation(), Target.Get()->GetActorLocation(), PosCurve->GetFloatValue(Progress));
+	float ScaleVal = ScaleCurve->GetFloatValue(Progress);
+	SetActorScale3D(FVector(ScaleVal));
+	NewVec = FVector(NewVec.X, NewVec.Y, NewVec.Z + HeightCurve->GetFloatValue(Progress));
+	GetMesh()->SetWorldLocation(NewVec);
+}
+
+void APickupBase::MoveToplayerWithTimerDone()
+{
+	GetWorldTimerManager().ClearTimer(PickupEffectTimerHandle);
 }
 
 void APickupBase::MoveupDownAndSpinWithTick()
 {
-	//if (Elapsed > 3)
-	//	Elapsed -= 3.0f;
-	//float Dz = UpDownCurve->GetFloatValue(Elapsed) * MoveWidth;
-	//SetActorLocation(InitPos + FVector(0, 0, Dz));
-
 
 	if (UMeshComponent* PickupMesh = GetMesh())
 	{

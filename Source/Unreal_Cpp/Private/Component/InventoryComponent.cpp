@@ -2,7 +2,7 @@
 
 
 #include "Component/InventoryComponent.h"
-
+#include "Framework/SubSystem/PickupFactorySubsystem.h"
 
 // Sets default values for this component's properties
 UInventoryComponent::UInventoryComponent()
@@ -12,16 +12,92 @@ UInventoryComponent::UInventoryComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 
 	// ...
+
+	Slots.SetNum(InventorySize + 1);
+}
+
+bool UInventoryComponent::ExecuteCommand(const FInventoryCommand& Command, FCommandResult& OutResult)
+{
+	switch (Command.Type)
+	{
+		case EInventoryCommandType::Add:
+			HandleAddCommand(Command.ItemData, Command.Count, OutResult);
+			if (OutResult.bSuccess)
+			{
+				UE_LOG(LogTemp, Log, TEXT("add completed"));
+			}
+			else
+			{
+				UE_LOG(LogTemp, Log, TEXT("add Incompleted %d remain"), OutResult.RemainingCnt);
+			}
+			break;
+		case EInventoryCommandType::Move:
+			HandleMoveCommand(Command.SourceIndex, Command.TargetIndex, OutResult);
+			break;
+		case EInventoryCommandType::Use:
+			HandleUseCommand(Command.TargetIndex, OutResult);
+			break;
+		case EInventoryCommandType::Drop:
+			HandleDropCommand(Command.TargetIndex, Command.Target3DPos, OutResult);
+			break;
+		default:
+			UE_LOG(LogTemp, Warning, TEXT("Invalid InventoryCommad"));
+			break;
+	}
+	return OutResult.bSuccess;
 }
 
 void UInventoryComponent::AddMoney(int32 InIncome)
 {
-
+	Money += InIncome;
 }
 
-void UInventoryComponent::AddItem(UItemDataAsset* InItemData, int32 InCount)
+int32 UInventoryComponent::AddItem(const UItemDataAsset* InItemData, int32 InCount)
 {
+	if (!InItemData)
+	{
+		UE_LOG(LogTemp, Log, TEXT("[UInventoryComponent::AddItem] : InItemData was nullptr"));
+		return InCount;
+	}
+	else if (InCount < 0)
+	{
+		UE_LOG(LogTemp, Log, TEXT("[UInventoryComponent::AddItem] : InCount was below zero"));
+		return InCount;
+	}
+	int32 RemainCnt = InCount;
 
+	int32 StartIndex = 0;
+
+	while (RemainCnt > 0)
+	{
+		int32 FoundIndex = FindSlotWithItem(InItemData, StartIndex);
+		if (FoundIndex == InValidSlot) break;
+
+		FInventorySlot& Slot = Slots[FoundIndex];
+		int32 AmountToAdd = FMath::Min(Slot.GetRemainCnt(), RemainCnt);
+
+		UpdateSlotCount(FoundIndex, AmountToAdd);
+		RemainCnt -= AmountToAdd;
+		StartIndex = FoundIndex + 1;
+
+	}
+
+	// 빈칸 찾기
+	while (RemainCnt > 0)
+	{
+		int32 FoundIndex = FindEmptySlot();
+		if (FoundIndex == InValidSlot) break;
+
+		FInventorySlot& Slot = Slots[FoundIndex];
+		int32 AmountToAdd = FMath::Min(InItemData->MaxStackCnt, RemainCnt);
+
+		PlaceItem2Slot(FoundIndex, InItemData, AmountToAdd);
+		RemainCnt -= AmountToAdd;
+		StartIndex = FoundIndex + 1;
+
+	}
+
+	return RemainCnt;
 }
 
 void UInventoryComponent::UseItem(int32 InIndex)
@@ -29,16 +105,136 @@ void UInventoryComponent::UseItem(int32 InIndex)
 
 }
 
-
 FInventorySlot* UInventoryComponent::GetSlot(int InSlotIndex)
 {
-	return nullptr;
+	check(IsValidIndex(InSlotIndex) && "[UInventoryComponent::GetSlot] : invalid array index");
+	//if (!IsValidIndex(InSlotIndex)) return nullptr;
+	return &Slots[InSlotIndex];
 }
 
 FInventorySlot* UInventoryComponent::GetTempSlot()
 {
-	return nullptr;
+	// 마지막 원소가 임시 배열임
+	return &Slots[InventorySize];
 }
+
+int32 UInventoryComponent::FindSlotWithItem(const UItemDataAsset* InItemData, int32 InStartIndex)
+{
+	int32 Res = InValidSlot;
+
+	for (int32 i = InStartIndex; i < InventorySize; i++)
+	{
+		if (Slots[i].ItemData == InItemData && !Slots[i].IsFull())
+		{
+			Res = i;
+			break;
+		}
+	}
+	return Res;
+}
+
+int32 UInventoryComponent::FindEmptySlot()
+{
+	int32 Res = InValidSlot;
+
+	for (int32 i = 0; i < InventorySize; i++)
+	{
+		if (Slots[i].IsEmpty())
+		{
+			Res = i;
+			break;
+		}
+	}
+
+	return Res;
+}
+
+void UInventoryComponent::PlaceItem2Slot(int32 InSlotIndex, const UItemDataAsset* InItemData, int32 InCount)
+{
+	if (!IsValidIndex(InSlotIndex)) return;
+	FInventorySlot& Slot = Slots[InSlotIndex];
+	Slot.ItemData = InItemData;
+	Slot.SetCnt(InCount);
+
+	//TODO Delegate
+}
+
+void UInventoryComponent::UpdateSlotCount(int32 InSlotIndex, int32 InDeltaCount)
+{
+	check(IsValidIndex(InSlotIndex) && "[UInventoryComponent::UpdateSlotCount] : Accessing with invalid array index");
+	FInventorySlot& Slot = Slots[InSlotIndex];
+
+	if (Slot.IsEmpty())return;
+
+	int32 NewCount = Slot.GetCnt() + InDeltaCount;
+	PlaceItem2Slot(InSlotIndex, Slot.ItemData, NewCount);
+}
+
+void UInventoryComponent::ClearSlot(int32 InSlotIndex)
+{
+	PlaceItem2Slot(InSlotIndex, nullptr, 0);
+}
+
+bool UInventoryComponent::HandleAddCommand(const UItemDataAsset* InItemData, int32 InCount, FCommandResult& OutResult)
+{
+	int32 Res = AddItem(InItemData, InCount);
+	if (Res > 0)
+	{
+		OutResult.bSuccess = false;
+		OutResult.RemainingCnt = Res;
+	}
+	else
+	{
+		OutResult.bSuccess = true;
+		OutResult.RemainingCnt = 0;
+	}
+	return OutResult.bSuccess;
+}
+
+bool UInventoryComponent::HandleMoveCommand(const int32 From, const int32 To, FCommandResult& OutResult)
+{
+	if (!IsValidIndex(From)) return OutResult.bSuccess = false;
+	if (!IsValidIndex(To)) return OutResult.bSuccess = false;
+
+	Swap(Slots[From], Slots[To]);
+
+	return OutResult.bSuccess = true;
+}
+
+bool UInventoryComponent::HandleDropCommand(const int32 InSlot, FVector InPOs, FCommandResult& OutResult)
+{
+	if (!IsValidIndex(InSlot)) OutResult.bSuccess = false;
+	FInventorySlot* slot = GetSlot(InSlot);
+	if (!slot) OutResult.bSuccess = false;
+
+	UPickupFactorySubsystem* FactorySubSystem = GetWorld()->GetSubsystem<UPickupFactorySubsystem>();
+	FactorySubSystem->SpawnPickupAsync(slot->ItemData, FTransform(FRotator::ZeroRotator, InPOs));
+
+	if (slot->GetCnt() == 1)
+	{
+		slot->ItemData = nullptr;
+		slot->SetCnt(0);
+	}
+	else if (slot->GetCnt() > 1)
+	{
+		slot->SetCnt(slot->GetCnt() - 1);
+	}
+
+
+	return OutResult.bSuccess = true;
+}
+
+bool UInventoryComponent::HandleUseCommand(const int32 InSlot, FCommandResult& OutResult)
+{
+	if (!IsValidIndex(InSlot)) return  OutResult.bSuccess = false;
+	FInventorySlot* slot = GetSlot(InSlot);
+	if (!slot) return OutResult.bSuccess = false;
+
+	UE_LOG(LogTemp, Log, TEXT("%s를 사용했습니다!"), *slot->ItemData->DisplayName.ToString());
+
+	return OutResult.bSuccess = true;
+}
+
 
 // Called when the game starts
 void UInventoryComponent::BeginPlay()
@@ -49,7 +245,6 @@ void UInventoryComponent::BeginPlay()
 
 }
 
-
 // Called every frame
 void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
@@ -57,29 +252,3 @@ void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 	// ...
 }
-
-int32 UInventoryComponent::FindSlotWitdhItem(const UItemDataAsset* InItemData, int32 InStartIndex)
-{
-	return int32();
-}
-
-int32 UInventoryComponent::FindEmptySlot()
-{
-	return int32();
-}
-
-void UInventoryComponent::UpdateSlotCount(int32 InSlotIndex, int32 InDeltaCount)
-{
-
-}
-
-void UInventoryComponent::SetItemSlot(int32 InSlotIndex, UItemDataAsset* InItemData, int32 InCount)
-{
-
-}
-
-void UInventoryComponent::ClearSlot(int32 InSlotIndex)
-{
-
-}
-

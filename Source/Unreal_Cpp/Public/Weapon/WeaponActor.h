@@ -26,7 +26,7 @@ public:
 
 
 	UFUNCTION(BlueprintCallable)
-	void InitalizeWeapon(UWeaponDataAsset* InData);
+	void InitalizeWeapon(const UWeaponDataAsset* InData);
 
 	UFUNCTION(BlueprintCallable)
 	void DropWeapon();
@@ -72,7 +72,7 @@ protected:
 	float AttackDamage = 10.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UWeaponDataAsset> WeaponData;
+	TObjectPtr<const UWeaponDataAsset> WeaponData;
 
 	// 드랍 직후에 플레이어와 물리 상호작용이 안되는 시간
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

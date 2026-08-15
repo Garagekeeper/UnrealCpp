@@ -122,7 +122,7 @@ void AWeaponActor::OnEquippedToTarget(AActor* InOwner, ECollisionChannel TargetC
 	OnEquipped(InOwner, TargetChanel);
 }
 
-void AWeaponActor::InitalizeWeapon(UWeaponDataAsset* InData)
+void AWeaponActor::InitalizeWeapon(const UWeaponDataAsset* InData)
 {
 	if (!InData) nullptr;
 

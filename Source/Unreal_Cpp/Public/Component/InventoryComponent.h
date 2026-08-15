@@ -3,8 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
 #include "Data/Item/ItemDataAsset.h"
+#include "Components/ActorComponent.h"
+#include "Component/InventoryCommandTypes.h"
 #include "InventoryComponent.generated.h"
 
 USTRUCT(BlueprintType)
@@ -12,25 +13,24 @@ struct FInventorySlot
 {
 	GENERATED_BODY()
 
+public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Slot")
-	TObjectPtr<UItemDataAsset> ItemData;
-
+	TObjectPtr<const UItemDataAsset> ItemData;
 
 protected:
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Slot")
 	int32 StackCnt = 0;
 
 public:
 	inline bool			IsEmpty() const { return ItemData == nullptr; }
-	inline bool			IsFull() const{ return ItemData && StackCnt >= ItemData->MaxStackCnt; }
+	inline bool			IsFull() const { return ItemData && (StackCnt >= ItemData->MaxStackCnt); }
 	inline void			Clear() { ItemData = nullptr; StackCnt = 0; }
-		
+
 	inline int32		GetRemainCnt() const { return ItemData ? ItemData->MaxStackCnt - StackCnt : 0; }
 	inline int32		GetCnt() const { return StackCnt; }
-	inline void			SetCnt(int32 InCount) 
+	inline void			SetCnt(int32 InCount)
 	{
-		if (ItemData && InCount >= 0)
+		if (ItemData && InCount > 0)
 		{
 			StackCnt = FMath::Clamp(InCount, 0, ItemData->MaxStackCnt);
 		}
@@ -39,21 +39,25 @@ public:
 			Clear();
 		}
 	}
-
 };
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class UNREAL_CPP_API UInventoryComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:	
+public:
 	// Sets default values for this component's properties
-						UInventoryComponent();	
+	UInventoryComponent();
 
+	// 커맨드 실행용 함수
+	UFUNCTION(BlueprintCallable, Category = "Inventory|Command")
+	bool ExecuteCommand(const FInventoryCommand& Command, FCommandResult& OutResult);
 
+	UFUNCTION(BlueprintCallable)
 	void				AddMoney(int32 InIncome);
-	void				AddItem(UItemDataAsset* InItemData, int32 InCount);
+	UFUNCTION(BlueprintCallable)
+	int32				AddItem(const UItemDataAsset* InItemData, int32 InCount);
 	void				UseItem(int32 InIndex);
 
 	/*-----------------------------
@@ -63,26 +67,27 @@ public:
 	FInventorySlot*		GetSlot(int InSlotIndex);
 	FInventorySlot*		GetTempSlot();
 
-
 protected:
-
+	void				PlaceItem2Slot(int32 InSlotIndex, const UItemDataAsset* InItemData, int32 InCount);
 	void				UpdateSlotCount(int32 InSlotIndex, int32 InDeltaCount);
-	void				SetItemSlot(int32 InSlotIndex, UItemDataAsset* InItemData, int32 InCount);
 	void				ClearSlot(int32 InSlotIndex);
 	inline bool			IsValidIndex(int32 InSlotIndex) const
 	{
-		return InSlotIndex < InventorySize 
-			&& InSlotIndex > 0;
+		return InSlotIndex < InventorySize && InSlotIndex >= 0;
 	}
+
+	bool				HandleAddCommand(const UItemDataAsset* InItemData, int32 InCount, FCommandResult& OutResult);
+	bool				HandleMoveCommand(const int32 From, const int32 To, FCommandResult& OutResult);
+	bool				HandleDropCommand(const int32 InSlot, FVector InPOs, FCommandResult& OutResult);
+	bool				HandleUseCommand(const int32 InSlot, FCommandResult& OutResult);
 
 	// Called when the game starts
 	virtual void		BeginPlay() override;
 	// Called every frame
 	virtual void		TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-
 private:
-	int32				FindSlotWitdhItem(const UItemDataAsset* InItemData, int32 InStartIndex = 0);
+	int32				FindSlotWithItem(const UItemDataAsset* InItemData, int32 InStartIndex = 0);
 	int32				FindEmptySlot();
 
 protected:
@@ -96,5 +101,4 @@ private:
 	static constexpr int32 InventorySize = 10;
 	// 슬롯 검색등에서 실패했을 때 반환할 정수
 	static constexpr int32 InValidSlot = INT32_MIN;
-	
 };

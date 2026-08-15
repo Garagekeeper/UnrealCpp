@@ -72,11 +72,11 @@ void APickupWeapon::BeginPlay()
 
 }
 
-void APickupWeapon::Init(UItemDataAsset* asset)
+void APickupWeapon::Init(const UItemDataAsset* asset)
 {
 	Super::Init(asset);
 	if (!asset) return;
-	if (UWeaponDataAsset* Casted = Cast<UWeaponDataAsset>(asset))
+	if (const UWeaponDataAsset* Casted = Cast<UWeaponDataAsset>(asset))
 	{
 		WeaponData = Casted;
 		if (USkeletalMesh* SkeletalData = WeaponData->Mesh.LoadSynchronous())
@@ -95,33 +95,7 @@ void APickupWeapon::DetectPickUp()
 {
 	//TODO pickup 먹을 수 있는 인터페이스 만드릭
 	if (!Target.Get()->Implements<UWeaponUserInterface>()) return;
-	// 내 풀이
-	bFollow = true;
-	//Elapsed = 0.0f;
-	//DetectSphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	NiagaraComponent->Deactivate();
-	// 타이머 기반 풀이
-	
-	if (IsAssetReady())
-	{
-		// 해당 타이머가 작동중dlaus 종료
-		if (GetWorldTimerManager().IsTimerActive(PickupEffectTimerHandle)) return;
-
-		DetectSphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		ElapsedForTimer = 0.0f;
-		GetWorldTimerManager().SetTimer(
-			PickupEffectTimerHandle,
-			this,
-			&APickupWeapon::MoveToPlayerWithTimer,
-			TimerInterval,
-			true
-		);
-	}
-	else
-	{
-		MoveToplayerWithTimerDone();
-	}
-
+	Super::DetectPickUp();
 }
 
 UMeshComponent* APickupWeapon::GetMesh() const
@@ -138,38 +112,38 @@ void APickupWeapon::MoveToPlayerWithTick()
 	SetActorLocation(NewVec);
 }
 
-bool APickupWeapon::IsAssetReady() const
-{
-	return UpDownCurve != nullptr && PosCurve != nullptr && HeightCurve != nullptr && ScaleCurve != nullptr;
-}
+//bool APickupWeapon::IsAssetReady() const
+//{
+//	return UpDownCurve != nullptr && PosCurve != nullptr && HeightCurve != nullptr && ScaleCurve != nullptr;
+//}
 
-void APickupWeapon::MoveToPlayerWithTimer()
-{
-	if (!Target.IsValid())
-	{
-		MoveToplayerWithTimerDone();
-		return;
-	}
-
-	ElapsedForTimer += TimerInterval;
-
-	PickUpEffectDuration = PickUpEffectDuration <= 0 ? 0.0001f : PickUpEffectDuration;
-	float Progress = ElapsedForTimer / PickUpEffectDuration;
-	if (Progress >= 1.0f)
-	{
-		MoveToplayerWithTimerDone();
-	}
-
-	FVector NewVec = FMath::Lerp(GetActorLocation(), Target.Get()->GetActorLocation(), PosCurve->GetFloatValue(Progress));
-	float ScaleVal = ScaleCurve->GetFloatValue(Progress);
-	SetActorScale3D(FVector(ScaleVal));
-	NewVec = FVector(NewVec.X, NewVec.Y, NewVec.Z + HeightCurve->GetFloatValue(Progress));
-	Mesh->SetWorldLocation(NewVec);
-}
-
+//void APickupWeapon::MoveToPlayerWithTimer()
+//{
+//	if (!Target.IsValid())
+//	{
+//		MoveToplayerWithTimerDone();
+//		return;
+//	}
+//
+//	ElapsedForTimer += TimerInterval;
+//
+//	PickUpEffectDuration = PickUpEffectDuration <= 0 ? 0.0001f : PickUpEffectDuration;
+//	float Progress = ElapsedForTimer / PickUpEffectDuration;
+//	if (Progress >= 1.0f)
+//	{
+//		MoveToplayerWithTimerDone();
+//	}
+//
+//	FVector NewVec = FMath::Lerp(GetActorLocation(), Target.Get()->GetActorLocation(), PosCurve->GetFloatValue(Progress));
+//	float ScaleVal = ScaleCurve->GetFloatValue(Progress);
+//	SetActorScale3D(FVector(ScaleVal));
+//	NewVec = FVector(NewVec.X, NewVec.Y, NewVec.Z + HeightCurve->GetFloatValue(Progress));
+//	Mesh->SetWorldLocation(NewVec);
+//}
+//
 void APickupWeapon::MoveToplayerWithTimerDone()
 {
-	GetWorldTimerManager().ClearTimer(PickupEffectTimerHandle);
+	Super::MoveToPlayerWithTimer();
 	if (Target.IsValid() )
 	{
 		IWeaponUserInterface::Execute_EquipWeapon(Target.Get(), WeaponData.Get());
@@ -182,6 +156,7 @@ void APickupWeapon::MoveToplayerWithTimerDone()
 		//Destroy();
 	}
 }
+
 
 void APickupWeapon::OnHitAreaBeginOverlap(UPrimitiveComponent* InOverlappedComponent, AActor* InOtherActor, UPrimitiveComponent* InOtherComp, int32 InOtherBodyIndex, bool bFromSweep, const FHitResult& InSweepResult)
 {
@@ -200,5 +175,4 @@ void APickupWeapon::OnHitAreaBeginOverlap(UPrimitiveComponent* InOverlappedCompo
 		}
 
 	}
-
 }
