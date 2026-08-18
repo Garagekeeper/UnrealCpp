@@ -4,6 +4,7 @@
 #include "Data/WeaponDataAsset.h"
 #include "Engine/AssetManager.h"
 #include "Engine/SkeletalMesh.h"
+#include "NiagaraSystem.h"
 
 
 bool UWeaponDataAsset::IsLoaded() const

@@ -80,6 +80,7 @@ protected:
 	bool				HandleMoveCommand(const int32 From, const int32 To, FCommandResult& OutResult);
 	bool				HandleDropCommand(const int32 InSlot, FVector InPOs, FCommandResult& OutResult);
 	bool				HandleUseCommand(const int32 InSlot, FCommandResult& OutResult);
+	bool				HandleMoneyCommand(const int32 InDelta, FCommandResult& OutResult);
 
 	// Called when the game starts
 	virtual void		BeginPlay() override;

@@ -14,7 +14,7 @@
 // Sets default values
 APickupBase::APickupBase()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	DetectSphereCollision = CreateDefaultSubobject<USphereComponent>(TEXT("RootCollision"));
@@ -42,13 +42,7 @@ void APickupBase::Init(const UItemDataAsset* asset)
 	{
 		PickupMesh->SetRelativeLocation(FVector::ZeroVector);
 	}
-	bFollow = false;
-	Elapsed = 0;
-	DetectSphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-}
 
-void APickupBase::Onspawn_Implementation()
-{
 	SetActorHiddenInGame(false);
 	SetActorEnableCollision(false);
 	SetActorTickEnabled(true);
@@ -63,15 +57,19 @@ void APickupBase::Onspawn_Implementation()
 
 	GetWorldTimerManager().SetTimer(
 		PickupCollisionTimerHandle,
-		FTimerDelegate::CreateLambda(
-			[this]() 
-			{
-				this->SetActorEnableCollision(true);
-				DetectSphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-			}),
+		[this]()
+		{
+			this->SetActorEnableCollision(true);
+			DetectSphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		},
 		1,
 		false
 	);
+}
+
+void APickupBase::Onspawn_Implementation()
+{
+	Init(DataAsset);
 }
 
 void APickupBase::OnReturn_Implementation()
@@ -119,7 +117,7 @@ void APickupBase::OnPickUp(AActor* InActor)
 
 bool APickupBase::IsCurveReady() const
 {
-	return UpDownCurve != nullptr && PosCurve != nullptr && HeightCurve != nullptr 
+	return UpDownCurve != nullptr && PosCurve != nullptr && HeightCurve != nullptr
 		&& ScaleCurve != nullptr && SpinCurve != nullptr;
 }
 
@@ -132,7 +130,7 @@ void APickupBase::DetectPickUp()
 	InitPos = GetActorLocation();
 	DetectSphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	SetActorEnableCollision(false);
-	
+
 	// 타이머 기반 풀이
 
 	if (IsCurveReady())

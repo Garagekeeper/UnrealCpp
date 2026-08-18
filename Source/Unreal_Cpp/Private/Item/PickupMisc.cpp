@@ -58,16 +58,19 @@ void APickupMisc::MoveToplayerWithTimerDone()
 	UGameInstance* GameInstance = GetGameInstance();
 	if (!GameInstance) return;
 	if (!GetWorld()) return;
+	if (!Target.IsValid()) return;
 
 	UObjectPoolSubsystem* PoolSubSystem = GameInstance->GetSubsystem<UObjectPoolSubsystem>();
 	UPickupFactorySubsystem* FactorySubSystem = GetWorld()->GetSubsystem<UPickupFactorySubsystem>();
+	
+	FVector NewLocation = Target.Get()->GetActorLocation() +  FVector(FMath::RandPointInCircle(300.0f), 0.0f);
 
 	if (IInventoryUserInterface* InvecUser = Cast< IInventoryUserInterface>(Target))
 	{
 		FCommandResult Result;
 		if (!InvecUser->ExecuteInventoryCommand(FInventoryCommand::MakeAdd(MiscData.Get(), 1), Result))
 		{
-			FactorySubSystem->SpawnPickupAsync(MiscData.Get(), FTransform(FRotator::ZeroRotator, InitPos));
+			FactorySubSystem->SpawnPickupAsync(MiscData.Get(), FTransform(FRotator::ZeroRotator, NewLocation));
 		}
 		PoolSubSystem->ReturnPool(this);
 	}

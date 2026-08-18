@@ -22,14 +22,6 @@ bool UInventoryComponent::ExecuteCommand(const FInventoryCommand& Command, FComm
 	{
 		case EInventoryCommandType::Add:
 			HandleAddCommand(Command.ItemData, Command.Count, OutResult);
-			if (OutResult.bSuccess)
-			{
-				UE_LOG(LogTemp, Log, TEXT("add completed"));
-			}
-			else
-			{
-				UE_LOG(LogTemp, Log, TEXT("add Incompleted %d remain"), OutResult.RemainingCnt);
-			}
 			break;
 		case EInventoryCommandType::Move:
 			HandleMoveCommand(Command.SourceIndex, Command.TargetIndex, OutResult);
@@ -39,6 +31,9 @@ bool UInventoryComponent::ExecuteCommand(const FInventoryCommand& Command, FComm
 			break;
 		case EInventoryCommandType::Drop:
 			HandleDropCommand(Command.TargetIndex, Command.Target3DPos, OutResult);
+			break;
+		case EInventoryCommandType::Money:
+			HandleMoneyCommand(Command.Count, OutResult);
 			break;
 		default:
 			UE_LOG(LogTemp, Warning, TEXT("Invalid InventoryCommad"));
@@ -188,6 +183,16 @@ bool UInventoryComponent::HandleAddCommand(const UItemDataAsset* InItemData, int
 		OutResult.bSuccess = true;
 		OutResult.RemainingCnt = 0;
 	}
+
+	if (OutResult.bSuccess)
+	{
+		UE_LOG(LogTemp, Log, TEXT("add completed"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("add Incompleted %d remain"), OutResult.RemainingCnt);
+	}
+
 	return OutResult.bSuccess;
 }
 
@@ -195,33 +200,53 @@ bool UInventoryComponent::HandleMoveCommand(const int32 From, const int32 To, FC
 {
 	if (!IsValidIndex(From)) return OutResult.bSuccess = false;
 	if (!IsValidIndex(To)) return OutResult.bSuccess = false;
+	if (Slots[From].IsEmpty()) return OutResult.bSuccess = false;
+
+	if (Slots[From].ItemData == Slots[To].ItemData)
+	{
+		// From에서 TO로 옮길 수 있는 개수
+		int32 AmountToAdd = FMath::Min(Slots[To].GetRemainCnt(), Slots[From].GetCnt());
+		if (AmountToAdd > 0)
+		{
+			UpdateSlotCount(To, AmountToAdd);
+			UpdateSlotCount(From, -AmountToAdd);
+			return OutResult.bSuccess = true;
+		}
+	}
 
 	Swap(Slots[From], Slots[To]);
 
 	return OutResult.bSuccess = true;
 }
 
-bool UInventoryComponent::HandleDropCommand(const int32 InSlot, FVector InPOs, FCommandResult& OutResult)
+bool UInventoryComponent::HandleDropCommand(const int32 InSlot, FVector InPos, FCommandResult& OutResult)
 {
-	if (!IsValidIndex(InSlot)) OutResult.bSuccess = false;
+	if (!IsValidIndex(InSlot)) return OutResult.bSuccess = false;
+
 	FInventorySlot* slot = GetSlot(InSlot);
-	if (!slot) OutResult.bSuccess = false;
+	if (!slot) return OutResult.bSuccess = false;
 
+	if (!GetWorld()) return OutResult.bSuccess = false;
+	
 	UPickupFactorySubsystem* FactorySubSystem = GetWorld()->GetSubsystem<UPickupFactorySubsystem>();
-	FactorySubSystem->SpawnPickupAsync(slot->ItemData, FTransform(FRotator::ZeroRotator, InPOs));
+	if (!FactorySubSystem) return OutResult.bSuccess = false;
 
-	if (slot->GetCnt() == 1)
+	if (slot->GetCnt() >= 1)
 	{
-		slot->ItemData = nullptr;
-		slot->SetCnt(0);
+		for (int i=0; i< slot->GetCnt(); i++)
+			FactorySubSystem->SpawnPickupAsync(slot->ItemData, FTransform(FRotator::ZeroRotator, InPos + FVector(FMath::RandPointInCircle(100.0f),0.0f)));
+
+		slot->Clear();
+		OutResult.bSuccess = true;
+
 	}
-	else if (slot->GetCnt() > 1)
+	else
 	{
-		slot->SetCnt(slot->GetCnt() - 1);
+		OutResult.bSuccess = false;
 	}
 
 
-	return OutResult.bSuccess = true;
+	return OutResult.bSuccess;
 }
 
 bool UInventoryComponent::HandleUseCommand(const int32 InSlot, FCommandResult& OutResult)
@@ -232,6 +257,12 @@ bool UInventoryComponent::HandleUseCommand(const int32 InSlot, FCommandResult& O
 
 	UE_LOG(LogTemp, Log, TEXT("%s를 사용했습니다!"), *slot->ItemData->DisplayName.ToString());
 
+	return OutResult.bSuccess = true;
+}
+
+bool UInventoryComponent::HandleMoneyCommand(const int32 InDelta, FCommandResult& OutResult)
+{
+	AddMoney(InDelta);
 	return OutResult.bSuccess = true;
 }
 
