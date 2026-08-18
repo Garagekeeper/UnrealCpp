@@ -143,7 +143,7 @@ void APickupWeapon::MoveToPlayerWithTick()
 //
 void APickupWeapon::MoveToplayerWithTimerDone()
 {
-	Super::MoveToPlayerWithTimer();
+	Super::MoveToplayerWithTimerDone();
 	if (Target.IsValid() )
 	{
 		IWeaponUserInterface::Execute_EquipWeapon(Target.Get(), WeaponData.Get());
