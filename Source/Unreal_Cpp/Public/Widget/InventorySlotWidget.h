@@ -26,6 +26,11 @@ public:
 	void RefreshSlot() const;
 
 protected:
+	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
+
+
+protected:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (Bindwidget))
 	TObjectPtr<UImage> Icon;
 
