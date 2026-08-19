@@ -8,6 +8,7 @@
 
 
 class UUserWidget;
+class UMainHUDWidget;
 
 /**
  * 
@@ -19,16 +20,16 @@ class UNREAL_CPP_API AActionHUD : public AHUD
 	
 public:
 	UFUNCTION(BlueprintCallable)
-	UUserWidget* GetMainHudWidget() const;
+	UMainHUDWidget* GetMainHudWidget() const;
 	
 protected:
 	virtual void BeginPlay() override;
 
 protected:
 	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<UUserWidget> MainHudWidgetClass;
+	TSubclassOf<UMainHUDWidget> MainHudWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UUserWidget> MainHudWidgetInstance;
+	TObjectPtr<UMainHUDWidget> MainHudWidgetInstance;
 	
 };

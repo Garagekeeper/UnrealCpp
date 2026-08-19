@@ -30,6 +30,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base|Data")
 	FText Description;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base|Spawn")
+	TSoftObjectPtr<UTexture2D> ItemIcon;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base|Data")
 	int32 Price = 1;
 
@@ -42,5 +45,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base|Spawn")
 	TSoftClassPtr<APickupBase> PickUpActor;
+
 
 };

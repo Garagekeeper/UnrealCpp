@@ -2,11 +2,11 @@
 
 
 #include "Framework/ActionHUD.h"
-#include "Blueprint/UserWidget.h"
+#include "Widget/MainHUDWidget.h"
 
-UUserWidget* AActionHUD::GetMainHudWidget() const
+UMainHUDWidget* AActionHUD::GetMainHudWidget() const
 {
-	return nullptr;
+	return MainHudWidgetInstance;
 }
 
 void AActionHUD::BeginPlay()
@@ -14,7 +14,7 @@ void AActionHUD::BeginPlay()
 	Super::BeginPlay();
 	if (MainHudWidgetClass)
 	{
-		MainHudWidgetInstance = CreateWidget<UUserWidget>(GetWorld(), MainHudWidgetClass);
+		MainHudWidgetInstance = CreateWidget<UMainHUDWidget>(GetWorld(), MainHudWidgetClass);
 		if (MainHudWidgetInstance)
 		{
 			MainHudWidgetInstance->AddToViewport();

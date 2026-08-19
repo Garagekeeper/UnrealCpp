@@ -45,6 +45,7 @@ bool UInventoryComponent::ExecuteCommand(const FInventoryCommand& Command, FComm
 void UInventoryComponent::AddMoney(int32 InIncome)
 {
 	Money += InIncome;
+	OnMoneyChaneged.Broadcast(Money);
 }
 
 int32 UInventoryComponent::AddItem(const UItemDataAsset* InItemData, int32 InCount)
@@ -147,11 +148,25 @@ int32 UInventoryComponent::FindEmptySlot()
 void UInventoryComponent::PlaceItem2Slot(int32 InSlotIndex, const UItemDataAsset* InItemData, int32 InCount)
 {
 	if (!IsValidIndex(InSlotIndex)) return;
+	if (!InItemData->IsLoaded())
+	{
+		InItemData->RequestDataLoad(
+			FStreamableDelegate::CreateWeakLambda(
+				this,
+				[this, InSlotIndex]()
+				{
+					UE_LOG(LogTemp, Log, TEXT("Set Slot: Asyc load compelete"));
+					OnSlotChanged.ExecuteIfBound(InSlotIndex);
+				}
+			)
+		);
+	}
 	FInventorySlot& Slot = Slots[InSlotIndex];
 	Slot.ItemData = InItemData;
 	Slot.SetCnt(InCount);
 
 	//TODO Delegate
+	OnSlotChanged.ExecuteIfBound(InSlotIndex);
 }
 
 void UInventoryComponent::UpdateSlotCount(int32 InSlotIndex, int32 InDeltaCount)
@@ -172,6 +187,7 @@ void UInventoryComponent::ClearSlot(int32 InSlotIndex)
 
 bool UInventoryComponent::HandleAddCommand(const UItemDataAsset* InItemData, int32 InCount, FCommandResult& OutResult)
 {
+
 	int32 Res = AddItem(InItemData, InCount);
 	if (Res > 0)
 	{

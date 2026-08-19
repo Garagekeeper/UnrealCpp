@@ -2,4 +2,41 @@
 
 
 #include "Widget/InventorySlotWidget.h"
+#include "Component/InventoryComponent.h"
+#include "Components/Image.h"
+#include "Components/TextBlock.h"
+#include "Components/HorizontalBox.h"
 
+void UInventorySlotWidget::InitSlot(UInventoryComponent* InInven, int32 InIndex)
+{
+	if (!InInven) return;
+
+	TargetInventory = InInven;
+	Index = InIndex;
+	Slot = InInven->GetSlot(Index);
+	RefreshSlot();
+}
+
+void UInventorySlotWidget::RefreshSlot() const
+{
+	if (!Slot)
+	{
+		UE_LOG(LogTemp, Log, TEXT("[Slot : %d] was Invalid"), Index);
+		return;
+	}
+
+	if (Slot->IsEmpty())
+	{
+		Icon->SetBrushFromSoftTexture(nullptr);
+		Icon->SetBrushTintColor(FLinearColor::Transparent);
+		CountBox->SetVisibility(ESlateVisibility::Hidden);
+	}
+	else
+	{
+		Icon->SetBrushFromSoftTexture(Slot->ItemData->ItemIcon.Get());
+		Icon->SetBrushTintColor(FLinearColor(1,1,1,1));
+		CountText->SetText(FText::AsNumber(Slot->GetCnt()));
+		MaxStackText->SetText(FText::AsNumber(Slot->ItemData->MaxStackCnt));
+		CountBox->SetVisibility(ESlateVisibility::HitTestInvisible);
+	}
+}

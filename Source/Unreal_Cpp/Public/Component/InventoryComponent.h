@@ -8,6 +8,10 @@
 #include "Component/InventoryCommandTypes.h"
 #include "InventoryComponent.generated.h"
 
+DECLARE_DELEGATE_OneParam(FOnInvenSlotChanged, int32);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInvenMoneyChaneged, int32);
+
+
 USTRUCT(BlueprintType)
 struct FInventorySlot
 {
@@ -52,7 +56,7 @@ public:
 
 	// 커맨드 실행용 함수
 	UFUNCTION(BlueprintCallable, Category = "Inventory|Command")
-	bool ExecuteCommand(const FInventoryCommand& Command, FCommandResult& OutResult);
+	bool				ExecuteCommand(const FInventoryCommand& Command, FCommandResult& OutResult);
 
 	UFUNCTION(BlueprintCallable)
 	void				AddMoney(int32 InIncome);
@@ -66,6 +70,7 @@ public:
 	inline int32		GetMoney() const { return Money; }
 	FInventorySlot*		GetSlot(int InSlotIndex);
 	FInventorySlot*		GetTempSlot();
+	inline const int32	GetSize() { return InventorySize; }
 
 protected:
 	void				PlaceItem2Slot(int32 InSlotIndex, const UItemDataAsset* InItemData, int32 InCount);
@@ -90,6 +95,10 @@ protected:
 private:
 	int32				FindSlotWithItem(const UItemDataAsset* InItemData, int32 InStartIndex = 0);
 	int32				FindEmptySlot();
+
+public:
+	FOnInvenSlotChanged OnSlotChanged;
+	FOnInvenMoneyChaneged OnMoneyChaneged;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory|Money")
