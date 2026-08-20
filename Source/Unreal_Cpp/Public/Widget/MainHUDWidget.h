@@ -20,6 +20,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void TestInventoryRefresh() const;
 	
+	UFUNCTION(BlueprintCallable)
+	void ToggleInventory() const;
+
+	
 protected:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (Bindwidget))
 	TObjectPtr<UStatBarWidget>		PlayerStatBar;

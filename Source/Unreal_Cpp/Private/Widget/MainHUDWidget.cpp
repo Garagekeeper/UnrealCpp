@@ -12,3 +12,11 @@ void UMainHUDWidget::TestInventoryRefresh() const
 		Inventory->TestRefresh();
 #endif
 }
+
+void UMainHUDWidget::ToggleInventory() const
+{
+	if (IsValid(Inventory))
+	{
+		Inventory->ToggleInventoryWidget();
+	}
+}

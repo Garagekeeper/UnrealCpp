@@ -11,6 +11,8 @@ class UMoneyPanelWidget;
 class UUniformGridPanel;
 class UInventoryComponent;
 class UInventorySlotWidget;
+class UDetailInfoWidget;
+
 
 
 
@@ -30,6 +32,8 @@ public:
 
 	void OpenInventoryWidget();
 	void CloseInventoryWidget();
+	void ToggleInventoryWidget();
+	FORCEINLINE bool IsInventoryOpen() const { return GetVisibility() == ESlateVisibility::Visible; }
 
 #if WITH_EDITOR
 	void TestRefresh();
@@ -44,6 +48,7 @@ protected:
 	void RefreshMoneyPannel(int32 InCurrentMoney) const;
 
 	virtual void NativeConstruct() override;
+	virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
 
 private:
 	UFUNCTION()
@@ -62,6 +67,9 @@ protected:
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (Bindwidget))
 	TObjectPtr<UUniformGridPanel> SlotGridPannel;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (Bindwidget))
+	TObjectPtr<UDetailInfoWidget> DetailInfo;
 
 private:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowprivateAccess = "true"))

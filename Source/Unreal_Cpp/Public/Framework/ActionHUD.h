@@ -21,6 +21,9 @@ class UNREAL_CPP_API AActionHUD : public AHUD
 public:
 	UFUNCTION(BlueprintCallable)
 	UMainHUDWidget* GetMainHudWidget() const;
+
+	UFUNCTION(BlueprintCallable)
+	void ToggleInventory();
 	
 protected:
 	virtual void BeginPlay() override;

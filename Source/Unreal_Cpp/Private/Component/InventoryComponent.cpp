@@ -3,6 +3,7 @@
 
 #include "Component/InventoryComponent.h"
 #include "Framework/SubSystem/PickupFactorySubsystem.h"
+#include "Widget/TemporaryWidget.h"
 
 // Sets default values for this component's properties
 UInventoryComponent::UInventoryComponent()
@@ -148,19 +149,23 @@ int32 UInventoryComponent::FindEmptySlot()
 void UInventoryComponent::PlaceItem2Slot(int32 InSlotIndex, const UItemDataAsset* InItemData, int32 InCount)
 {
 	if (!IsValidIndex(InSlotIndex)) return;
-	if (!InItemData->IsLoaded())
+	if (InItemData)
 	{
-		InItemData->RequestDataLoad(
-			FStreamableDelegate::CreateWeakLambda(
-				this,
-				[this, InSlotIndex]()
-				{
-					UE_LOG(LogTemp, Log, TEXT("Set Slot: Asyc load compelete"));
-					OnSlotChanged.ExecuteIfBound(InSlotIndex);
-				}
-			)
-		);
+		if (!InItemData->IsLoaded())
+		{
+			InItemData->RequestDataLoad(
+				FStreamableDelegate::CreateWeakLambda(
+					this,
+					[this, InSlotIndex]()
+					{
+						UE_LOG(LogTemp, Log, TEXT("Set Slot: Asyc load compelete"));
+						OnSlotChanged.ExecuteIfBound(InSlotIndex);
+					}
+				)
+			);
+		}
 	}
+
 	FInventorySlot& Slot = Slots[InSlotIndex];
 	Slot.ItemData = InItemData;
 	Slot.SetCnt(InCount);
@@ -231,6 +236,8 @@ bool UInventoryComponent::HandleMoveCommand(const int32 From, const int32 To, FC
 	}
 
 	Swap(Slots[From], Slots[To]);
+	OnSlotChanged.ExecuteIfBound(From);
+	OnSlotChanged.ExecuteIfBound(To);
 
 	return OutResult.bSuccess = true;
 }

@@ -11,6 +11,7 @@
 DECLARE_DELEGATE_OneParam(FOnInvenSlotChanged, int32);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInvenMoneyChaneged, int32);
 
+class UTemporaryWidget;
 
 USTRUCT(BlueprintType)
 struct FInventorySlot
@@ -71,6 +72,7 @@ public:
 	FInventorySlot*		GetSlot(int InSlotIndex);
 	FInventorySlot*		GetTempSlot();
 	inline const int32	GetSize() { return InventorySize; }
+	TSubclassOf<UTemporaryWidget> GetTempSlotWidgetClass() const { return TempSlotWidget; }
 
 protected:
 	void				PlaceItem2Slot(int32 InSlotIndex, const UItemDataAsset* InItemData, int32 InCount);
@@ -106,6 +108,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory|Slot")
 	TArray<FInventorySlot> Slots;
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<UTemporaryWidget> TempSlotWidget;
 
 private:
 	static constexpr int32 InventorySize = 10;

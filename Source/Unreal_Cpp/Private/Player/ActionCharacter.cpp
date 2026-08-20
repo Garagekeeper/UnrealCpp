@@ -14,6 +14,7 @@
 #include "Weapon/WeaponActor.h"
 #include "Unreal_Cpp/Unreal_Cpp.h"
 #include "Component/InventoryComponent.h"
+#include "Framework/ActionHUD.h"
 
 // Sets default values
 AActionCharacter::AActionCharacter()
@@ -190,6 +191,14 @@ void AActionCharacter::BeginPlay()
 		BaseWeapon = CurrentWeapon.Get();
 	}
 
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		if (AActionHUD* AHUD = Cast<AActionHUD>(PC->GetHUD()))
+		{
+			ActionHUD = AHUD;
+		}
+	}
+
 }
 
 // Called every frame
@@ -310,6 +319,7 @@ void AActionCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		EnhancedInputComponent->BindAction(IA_Test, ETriggerEvent::Started, this, &AActionCharacter::OnTestAction);
+		EnhancedInputComponent->BindAction(IA_Inven, ETriggerEvent::Started, this, &AActionCharacter::OnInvenAction);
 		EnhancedInputComponent->BindAction(IA_Move, ETriggerEvent::Triggered, this, &AActionCharacter::OnMoveAction);
 		//EnhancedInputComponent->BindAction(IA_Sprint, ETriggerEvent::Started, this, &AActionCharacter::OnSprintStartAction);
 		//EnhancedInputComponent->BindAction(IA_Sprint, ETriggerEvent::Completed, this, &AActionCharacter::OnSprintExitAction);
@@ -330,6 +340,25 @@ void AActionCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 void AActionCharacter::OnTestAction(const FInputActionValue& Value)
 {
 	
+}
+
+void AActionCharacter::OnInvenAction(const FInputActionValue& Value)
+{
+	if (!ActionHUD.IsValid())
+	{
+		if (APlayerController* PC = Cast<APlayerController>(GetController()))
+		{
+			if (AActionHUD* AHUD = Cast<AActionHUD>(PC->GetHUD()))
+			{
+				ActionHUD = AHUD;
+			}
+		}
+	}
+
+	if (ActionHUD.IsValid())
+	{
+		ActionHUD->ToggleInventory();
+	}
 }
 
 void AActionCharacter::OnMoveAction(const FInputActionValue& Value)

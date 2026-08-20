@@ -13,6 +13,9 @@ class UImage;
 class UHorizontalBox;
 struct FInventorySlot;
 
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnSlotEnter, int32);
+DECLARE_MULTICAST_DELEGATE(FOnSlotLeave);
 /**
  * 
  */
@@ -29,6 +32,13 @@ protected:
 	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
 
+	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
+	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)override;
+	virtual void NativeOnDragCancelled(const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)override;
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)override;
+public:
+	FOnSlotEnter OnSlotEnter;
+	FOnSlotLeave OnSlotLeave;
 
 protected:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (Bindwidget))

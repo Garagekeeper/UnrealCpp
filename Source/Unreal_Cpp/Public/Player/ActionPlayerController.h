@@ -10,6 +10,7 @@
 
 class USpringArmComponent;
 class UCameraComponent;
+class SWidget;
 
 /**
  * 
@@ -18,7 +19,11 @@ UCLASS()
 class UNREAL_CPP_API AActionPlayerController : public APlayerController
 {
 	GENERATED_BODY()
-	
+
+public:
+	void OnInventoryOpenClose(bool bInventoryOpen, UUserWidget* InFocusWidet = nullptr);
+
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

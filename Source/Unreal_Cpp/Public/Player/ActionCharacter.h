@@ -15,7 +15,7 @@ class UCameraComponent;
 //class UStatComponent;
 class UAnimNotifyState_SectionJump;
 class AWeaponActor;
-//class UWeaponDataAsset;
+class AActionHUD;
 
 UCLASS()
 class UNREAL_CPP_API AActionCharacter : 
@@ -61,6 +61,7 @@ protected:
 
 protected:
 	void OnTestAction(const FInputActionValue& Value);
+	void OnInvenAction(const FInputActionValue& Value);
 	void OnMoveAction(const FInputActionValue& Value);
 	void OnSprintStartAction(const FInputActionValue& Value);
 	void OnSprintExitAction(const FInputActionValue& Value);
@@ -82,6 +83,9 @@ public:
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<class UInputAction> IA_Test;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<class UInputAction> IA_Inven;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<class UInputAction> IA_Move;
@@ -167,7 +171,7 @@ private:
 	UPROPERTY()
 	TObjectPtr<UAnimInstance> AnimInstance = nullptr;
 
-	bool bRun = false;
+	TWeakObjectPtr<AActionHUD> ActionHUD = nullptr;
 
 	// 발생한 콤보 노티파이를 저장해 놓는 변수
 	TWeakObjectPtr<UAnimNotifyState_SectionJump> SectionJumpNotify = nullptr;
@@ -177,4 +181,5 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	bool bCanAttack = true;
 
+	bool bRun = false;
 };
