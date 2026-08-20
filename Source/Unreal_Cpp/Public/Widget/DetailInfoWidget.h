@@ -48,7 +48,6 @@ protected:
 	TObjectPtr<UImage> ItemIcon;
 
 private:
-	bool bTickEnable = false;
 	TWeakObjectPtr<UCanvasPanelSlot> CanvasSlot;
 	FVector2D ParentPanelPosition;
 };

@@ -17,9 +17,7 @@ void UDetailInfoWidget::DetailOpen(const UItemDataAsset* InItemData)
 	ItemNameText->SetText(InItemData->DisplayName);
 	ItemPriceText->SetText(FText::AsNumber(InItemData->Price));
 	ItemDescriptionText->SetText(InItemData->Description);
-
 	SetVisibility(ESlateVisibility::HitTestInvisible);
-	bTickEnable = true;
 
 	UpdateLocation();
 }
@@ -27,7 +25,6 @@ void UDetailInfoWidget::DetailOpen(const UItemDataAsset* InItemData)
 void UDetailInfoWidget::DetailClose()
 {
 	SetVisibility(ESlateVisibility::Collapsed);
-	bTickEnable = false;
 }
 
 void UDetailInfoWidget::NativeConstruct()
@@ -40,11 +37,6 @@ void UDetailInfoWidget::NativeConstruct()
 void UDetailInfoWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
-	// 위젯이 꺼져있을 때는 계산 건너뛰기 (성능 최적화)
-	if (!bTickEnable || GetVisibility() == ESlateVisibility::Collapsed)
-	{
-		return;
-	}
 	UpdateLocation();
 }
 
