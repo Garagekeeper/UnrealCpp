@@ -44,12 +44,15 @@ void UInventoryWidget::InitInventoryWidget(UInventoryComponent* InventoryCompone
 
 void UInventoryWidget::ClearInventoryWidget()
 {
+
+	if (TargetInventory.IsValid())
+	{
+		TargetInventory->OnSlotChanged.Unbind();
+		TargetInventory->OnMoneyChaneged.RemoveAll(this);
+	}
+
 	SlotSize = 0;
 	TargetInventory = nullptr;
-
-	if (!TargetInventory.IsValid()) return;
-	TargetInventory->OnSlotChanged.Unbind();
-	TargetInventory->OnMoneyChaneged.Clear();
 }
 
 void UInventoryWidget::OpenInventoryWidget()

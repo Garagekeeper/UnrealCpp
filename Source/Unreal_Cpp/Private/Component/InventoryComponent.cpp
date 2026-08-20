@@ -252,7 +252,7 @@ bool UInventoryComponent::HandleDropCommand(const int32 InSlot, FVector InPos, F
 		for (int i=0; i< slot->GetCnt(); i++)
 			FactorySubSystem->SpawnPickupAsync(slot->ItemData, FTransform(FRotator::ZeroRotator, InPos + FVector(FMath::RandPointInCircle(100.0f),0.0f)));
 
-		slot->Clear();
+		ClearSlot(InSlot);
 		OutResult.bSuccess = true;
 
 	}

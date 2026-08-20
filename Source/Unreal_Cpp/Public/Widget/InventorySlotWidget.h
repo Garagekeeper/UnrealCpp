@@ -51,7 +51,4 @@ private:
 
 	static constexpr int32 InvalidIndex = -1;
 	int32 Index = InvalidIndex;
-
-	// 이slot widget과 대응되는 인벤토리의 주소
-	const FInventorySlot* Slot = nullptr;
 };

@@ -13,19 +13,25 @@ void UInventorySlotWidget::InitSlot(UInventoryComponent* InInven, int32 InIndex)
 
 	TargetInventory = InInven;
 	Index = InIndex;
-	Slot = InInven->GetSlot(Index);
 	RefreshSlot();
 }
 
 void UInventorySlotWidget::RefreshSlot() const
 {
-	if (!Slot)
+
+
+	// 이slot widget과 대응되는 인벤토리의 주소
+	if (!TargetInventory.IsValid()) return;
+
+	const FInventorySlot* TargetSlot = TargetInventory.Get()->GetSlot(Index);
+
+	if (!TargetSlot)
 	{
 		UE_LOG(LogTemp, Log, TEXT("[Slot : %d] was Invalid"), Index);
 		return;
 	}
 
-	if (Slot->IsEmpty())
+	if (TargetSlot->IsEmpty())
 	{
 		Icon->SetBrushFromSoftTexture(nullptr);
 		Icon->SetBrushTintColor(FLinearColor::Transparent);
@@ -33,10 +39,10 @@ void UInventorySlotWidget::RefreshSlot() const
 	}
 	else
 	{
-		Icon->SetBrushFromSoftTexture(Slot->ItemData->ItemIcon.Get());
+		Icon->SetBrushFromSoftTexture(TargetSlot->ItemData->ItemIcon.Get());
 		Icon->SetBrushTintColor(FLinearColor(1,1,1,1));
-		CountText->SetText(FText::AsNumber(Slot->GetCnt()));
-		MaxStackText->SetText(FText::AsNumber(Slot->ItemData->MaxStackCnt));
+		CountText->SetText(FText::AsNumber(TargetSlot->GetCnt()));
+		MaxStackText->SetText(FText::AsNumber(TargetSlot->ItemData->MaxStackCnt));
 		CountBox->SetVisibility(ESlateVisibility::HitTestInvisible);
 	}
 }
