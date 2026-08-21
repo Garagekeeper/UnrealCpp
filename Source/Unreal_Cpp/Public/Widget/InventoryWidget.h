@@ -33,7 +33,7 @@ public:
 	void OpenInventoryWidget();
 	void CloseInventoryWidget();
 	void ToggleInventoryWidget();
-	FORCEINLINE bool IsInventoryOpen() const { return GetVisibility() == ESlateVisibility::Visible; }
+	bool IsInventoryOpen() const { return GetVisibility() == ESlateVisibility::Visible; }
 
 #if WITH_EDITOR
 	void TestRefresh();
@@ -56,7 +56,7 @@ private:
 	void OnCloseBtnClicked();
 
 	// 해당 인덱스가 유효한지 확인
-	inline bool IsValidIndex(int32 InIndex) const { return InIndex >= 0 && InIndex < SlotSize; };
+	FORCEINLINE bool IsValidIndex(int32 InIndex) const { return InIndex >= 0 && InIndex < SlotSize; };
 
 
 protected:

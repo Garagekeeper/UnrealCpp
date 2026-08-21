@@ -7,7 +7,7 @@
 #include "EnhancedInputComponent.h"
 #include "Blueprint/UserWidget.h"
 
-void AActionPlayerController::OnInventoryOpenClose(bool bInventoryOpen, UUserWidget* InFocusWidet)
+void AActionPlayerController::OnInventoryOpenClose(bool bInventoryOpen, UUserWidget* InFocusWidget)
 {
 	//FInputModeGameOnly
 	//FInputModeUIOnly
@@ -16,7 +16,8 @@ void AActionPlayerController::OnInventoryOpenClose(bool bInventoryOpen, UUserWid
 	if (bInventoryOpen)
 	{
 		FInputModeUIOnly InputModeUI;
-		InputModeUI.SetWidgetToFocus(InFocusWidet->TakeWidget());
+		InputModeUI.SetWidgetToFocus(InFocusWidget->TakeWidget());
+
 		SetInputMode(InputModeUI);
 		SetShowMouseCursor(true);
 	}

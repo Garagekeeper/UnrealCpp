@@ -20,7 +20,7 @@ void UInventoryWidget::InitInventoryWidget(UInventoryComponent* InventoryCompone
 	ClearInventoryWidget();
 	TargetInventory = InventoryComponent;
 
-	if (TargetInventory.IsValid())
+	if (!TargetInventory.IsValid())
 	{
 		UE_LOG(LogTemp, Log, TEXT("TargetInventory was InValid Pointer"));
 	}
@@ -82,6 +82,7 @@ void UInventoryWidget::ClearInventoryWidget()
 
 void UInventoryWidget::OpenInventoryWidget()
 {
+	UE_LOG(LogTemp, Display, TEXT("Open"));
 	SetVisibility(ESlateVisibility::Visible);
 
 	UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(Slot);
@@ -96,6 +97,7 @@ void UInventoryWidget::OpenInventoryWidget()
 
 void UInventoryWidget::CloseInventoryWidget()
 {
+	UE_LOG(LogTemp, Display, TEXT("Close"));
 	SetVisibility(ESlateVisibility::Collapsed);
 	if (AActionPlayerController* PC = Cast<AActionPlayerController>(GetOwningPlayer()))
 	{
@@ -105,7 +107,20 @@ void UInventoryWidget::CloseInventoryWidget()
 
 void UInventoryWidget::ToggleInventoryWidget()
 {
-	IsInventoryOpen() ? CloseInventoryWidget() : OpenInventoryWidget();
+	UE_LOG(LogTemp, Display, TEXT("Toggle"));
+
+	if(TargetInventory->GetSlot(0))
+		UE_LOG(LogTemp, Display, TEXT("111"));
+
+
+	if (IsInventoryOpen())
+	{
+		CloseInventoryWidget();
+	}
+	else
+	{
+		OpenInventoryWidget();
+	}
 }
 
 void UInventoryWidget::TestRefresh()
@@ -164,7 +179,8 @@ void UInventoryWidget::NativeConstruct()
 		}
 	}
 
-	CloseInventoryWidget();
+	//CloseInventoryWidget();
+	OpenInventoryWidget();
 }
 
 bool UInventoryWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)

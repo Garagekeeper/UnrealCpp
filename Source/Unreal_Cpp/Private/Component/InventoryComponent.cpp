@@ -4,6 +4,7 @@
 #include "Component/InventoryComponent.h"
 #include "Framework/SubSystem/PickupFactorySubsystem.h"
 #include "Widget/TemporaryWidget.h"
+#include "Data/Item/UsableItmeDataAsset.h"
 
 // Sets default values for this component's properties
 UInventoryComponent::UInventoryComponent()
@@ -102,7 +103,16 @@ int32 UInventoryComponent::AddItem(const UItemDataAsset* InItemData, int32 InCou
 
 void UInventoryComponent::UseItem(int32 InIndex)
 {
-
+	FInventorySlot* slot = GetSlot(InIndex);
+	if (!slot) return;
+	if (const UUsableItmeDataAsset* Usable = Cast<const UUsableItmeDataAsset>(slot->ItemData))
+	{
+		if (Usable->ItemAciton)
+		{
+			Usable->ItemAciton->ExecuteAction(GetOwner(), GetOwner());
+			UpdateSlotCount(InIndex, -1);
+		}
+	}
 }
 
 FInventorySlot* UInventoryComponent::GetSlot(int InSlotIndex)
@@ -170,8 +180,16 @@ void UInventoryComponent::PlaceItem2Slot(int32 InSlotIndex, const UItemDataAsset
 	}
 
 	FInventorySlot& Slot = Slots[InSlotIndex];
-	Slot.ItemData = InItemData;
-	Slot.SetCnt(InCount);
+	if (InCount == 0)
+	{
+		Slot.Clear();
+	}
+	else
+	{
+		Slot.ItemData = InItemData;
+		Slot.SetCnt(InCount);
+	}
+
 
 	//TODO Delegate
 	OnSlotChanged.ExecuteIfBound(InSlotIndex);
@@ -278,11 +296,7 @@ bool UInventoryComponent::HandleDropCommand(const int32 InSlot, FVector InPos, F
 bool UInventoryComponent::HandleUseCommand(const int32 InSlot, FCommandResult& OutResult)
 {
 	if (!IsValidIndex(InSlot)) return  OutResult.bSuccess = false;
-	FInventorySlot* slot = GetSlot(InSlot);
-	if (!slot) return OutResult.bSuccess = false;
-
-	UE_LOG(LogTemp, Log, TEXT("%s를 사용했습니다!"), *slot->ItemData->DisplayName.ToString());
-
+	UseItem(InSlot);
 	return OutResult.bSuccess = true;
 }
 

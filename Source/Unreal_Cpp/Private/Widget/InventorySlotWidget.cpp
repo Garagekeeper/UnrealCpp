@@ -89,17 +89,15 @@ void UInventorySlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, con
 
 	FCommandResult Res;
 	TargetInventory->ExecuteCommand(FInventoryCommand::MakeMove(Index, TargetInventory->GetSize()), Res);
+
 }
 
 
 bool UInventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
+
 	if (UInventoryDragDropOperation* DragOp = Cast<UInventoryDragDropOperation>(InOperation))
 	{
-
-		if (DragOp->Index == Index) return false;
-
-
 		FCommandResult Res;
 		TargetInventory->ExecuteCommand(FInventoryCommand::MakeMove(Index, DragOp->Index), Res);
 		TargetInventory->ExecuteCommand(FInventoryCommand::MakeMove(TargetInventory->GetSize(), Index), Res);
@@ -110,50 +108,61 @@ bool UInventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 
 void UInventorySlotWidget::NativeOnDragCancelled(const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
+	UE_LOG(LogTemp, Log, TEXT("바닥에서 드래그 종료"));
 
-	if (UInventoryDragDropOperation* DragOp = Cast<UInventoryDragDropOperation>(InOperation))
+	if (APlayerController* PC = GetOwningPlayer())
 	{
-		if (APlayerController* PC = GetOwningPlayer())
+		UE_LOG(LogTemp, Log, TEXT("플레이어 컨트롤러 확인"));
+		FHitResult HitResult;
+		//if (PC->GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, HitResult))	// UI에서 관리하는 마우스 좌표와 PC가 관리하는 마우스 좌표가 다름
+		//{
+		//	UE_LOG(LogTemp, Log, TEXT("바닥 히트 성공"));
+		//	FCommandResult Result;
+		//	TargetInventory->ExecuteCommand(
+		//		FInventoryCommand::MakeDrop(TargetInventory->GetSize(), HitResult.Location),
+		//		Result);
+		//}
+
+		FVector2D AbsolutePosition = InDragDropEvent.GetScreenSpacePosition();
+		FVector2D PixelPosion;
+		FVector2D ViewportPosition;
+		USlateBlueprintLibrary::AbsoluteToViewport(this, AbsolutePosition, PixelPosion, ViewportPosition);
+
+		FVector WorldLocation;
+		FVector WorldDirection;
+		if (PC->DeprojectScreenPositionToWorld(
+			PixelPosion.X, PixelPosion.Y,
+			WorldLocation, WorldDirection))
 		{
-			//FHitResult HitRes;
-			//if (PC->GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, HitRes))
-			//{
-			//	//FVector Loc = GetOwningPlayerPawn()->GetActorLocation();
-			//	FCommandResult Res;
-			//	TargetInventory->ExecuteCommand(FInventoryCommand::MakeDrop(TargetInventory->GetSize(), HitRes.Location), Res);
-			//}
-			
-			FVector2D AbsPos = InDragDropEvent.GetScreenSpacePosition();
-			FVector2D PixelPos;
-			FVector2D ViewPortPos;
-			USlateBlueprintLibrary::AbsoluteToViewport(this, AbsPos, PixelPos, ViewPortPos);
+			FVector Start = WorldLocation;
+			FVector End = Start + WorldDirection * 10000.0f;
 
-			FVector WorldPos;
-			FVector WorldDir;
-			if (PC->DeprojectScreenPositionToWorld(PixelPos.X, PixelPos.Y, WorldPos, WorldDir))
+			FVector SpawnLocation;
+			if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_Visibility))
 			{
-				FVector Start = WorldPos;
-				FVector End = Start + WorldDir * 10000.0f;
-
-				FVector SpawnLocation;
-				FHitResult HitRes;
-				if (GetWorld()->LineTraceSingleByChannel(HitRes, Start, End, ECollisionChannel::ECC_Visibility))
-				{
-					SpawnLocation = HitRes.Location;
-				}
-				else
-				{
-					SpawnLocation = End;
-				}
-
-				FCommandResult Res;
-				TargetInventory->ExecuteCommand(FInventoryCommand::MakeDrop(TargetInventory->GetSize(), SpawnLocation), Res);
+				SpawnLocation = HitResult.Location;
 			}
-		}
+			else
+			{
+				SpawnLocation = End;
+			}
 
-		
+			float MaxBound = 500.0f;
+			FVector PlayerLoc = GetOwningPlayerPawn()->GetActorLocation();
+			FVector Dist = SpawnLocation - PlayerLoc;
+			if ((Dist.SquaredLength()) >= (MaxBound * MaxBound))
+			{
+				SpawnLocation = PlayerLoc + Dist.GetSafeNormal() * MaxBound;
+			}
+
+			FCommandResult Result;
+			TargetInventory->ExecuteCommand(
+				FInventoryCommand::MakeDrop(TargetInventory->GetSize(), SpawnLocation),
+				Result);
+		}
 	}
-	return Super::NativeOnDragCancelled(InDragDropEvent, InOperation);
+
+	Super::NativeOnDragCancelled(InDragDropEvent, InOperation);
 }
 
 FReply UInventorySlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -168,5 +177,20 @@ FReply UInventorySlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry
 			return FReply::Handled().DetectDrag(TakeWidget(), EKeys::LeftMouseButton);
 		}
 	}
+	else if (InMouseEvent.IsMouseButtonDown(EKeys::RightMouseButton))
+	{
+		if (FInventorySlot* InvenSlot = TargetInventory->GetSlot(Index))
+		{
+			if (!InvenSlot->IsEmpty())
+			{
+				FCommandResult Res;
+				TargetInventory->ExecuteCommand(FInventoryCommand::MakeUse(Index), Res);
+			}
+
+		}
+	}
+	
 	return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
+
+
 }
