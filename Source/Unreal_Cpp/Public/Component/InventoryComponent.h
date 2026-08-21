@@ -78,9 +78,9 @@ protected:
 	void				PlaceItem2Slot(int32 InSlotIndex, const UItemDataAsset* InItemData, int32 InCount);
 	void				UpdateSlotCount(int32 InSlotIndex, int32 InDeltaCount);
 	void				ClearSlot(int32 InSlotIndex);
-	inline bool			IsValidIndex(int32 InSlotIndex) const
+	FORCEINLINE bool	IsValidIndex(int32 InSlotIndex) const
 	{
-		return InSlotIndex < InventorySize && InSlotIndex >= 0;
+		return InSlotIndex <= InventorySize && InSlotIndex >= 0;
 	}
 
 	bool				HandleAddCommand(const UItemDataAsset* InItemData, int32 InCount, FCommandResult& OutResult);
@@ -88,6 +88,7 @@ protected:
 	bool				HandleDropCommand(const int32 InSlot, FVector InPOs, FCommandResult& OutResult);
 	bool				HandleUseCommand(const int32 InSlot, FCommandResult& OutResult);
 	bool				HandleMoneyCommand(const int32 InDelta, FCommandResult& OutResult);
+	bool				HandleClearCommand(const int32 InSlot, FCommandResult& OutResult);
 
 	// Called when the game starts
 	virtual void		BeginPlay() override;

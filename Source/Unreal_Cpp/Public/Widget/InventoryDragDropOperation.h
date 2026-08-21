@@ -20,6 +20,9 @@ public:
 	TWeakObjectPtr<const UItemDataAsset> ItemData;
 
 	UPROPERTY(BlueprintReadOnly)
-	int32 Index;
+	int32 Index = 0;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 CurrentCnt = 0;
 	
 };

@@ -10,6 +10,7 @@
 #include "Widget/InventoryDragDropOperation.h"
 #include "Widget/TemporaryWidget.h"
 #include "Player/ActionCharacter.h"
+#include "Blueprint/SlateBlueprintLibrary.h"
 
 void UInventorySlotWidget::InitSlot(UInventoryComponent* InInven, int32 InIndex)
 {
@@ -37,14 +38,14 @@ void UInventorySlotWidget::RefreshSlot() const
 
 	if (TargetSlot->IsEmpty())
 	{
-		Icon->SetBrushFromSoftTexture(nullptr);
+		Icon->SetBrushFromTexture(nullptr);
 		Icon->SetBrushTintColor(FLinearColor::Transparent);
 		CountBox->SetVisibility(ESlateVisibility::Hidden);
 	}
 	else
 	{
 		Icon->SetBrushFromSoftTexture(TargetSlot->ItemData->ItemIcon.Get());
-		Icon->SetBrushTintColor(FLinearColor(1,1,1,1));
+		Icon->SetBrushTintColor(FLinearColor(1, 1, 1, 1));
 		CountText->SetText(FText::AsNumber(TargetSlot->GetCnt()));
 		MaxStackText->SetText(FText::AsNumber(TargetSlot->ItemData->MaxStackCnt));
 		CountBox->SetVisibility(ESlateVisibility::HitTestInvisible);
@@ -68,43 +69,90 @@ void UInventorySlotWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 void UInventorySlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation)
 {
 	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
-	UE_LOG(LogTemp, Log, TEXT("드래그 감지"));
 
-	//UInventoryDragDropOperation* DragOp = NewObject<UInventoryDragDropOperation>();
-	////DragOp->ItemData
-	//
-	//UTemporaryWidget* DragTemp = CreateWidget<UTemporaryWidget>(
-	//	this,
-	//	TargetInventory->GetTempSlotWidgetClass()
-	//);
-	//// 드래그중에 보일 위젯
-	//DragOp->DefaultDragVisual = DragTemp;
-	//DragOp->Index = Index;
-	//OutOperation = DragOp;
+	FInventorySlot* InvenSlot = TargetInventory->GetSlot(Index);
+	if (!InvenSlot || !InvenSlot->ItemData) return;
+
+	UInventoryDragDropOperation* DragOp = NewObject<UInventoryDragDropOperation>();
+	DragOp->ItemData = InvenSlot->ItemData;
+	DragOp->CurrentCnt = InvenSlot->GetCnt();;
+
+	UTemporaryWidget* DragTemp = CreateWidget<UTemporaryWidget>(
+		this,
+		TargetInventory->GetTempSlotWidgetClass()
+	);
+	// 드래그중에 보일 위젯
+	DragOp->DefaultDragVisual = DragTemp;
+	DragOp->Index = Index;
+	DragTemp->SetVisual(InvenSlot->ItemData->ItemIcon.Get(), InvenSlot->GetCnt());
+	OutOperation = DragOp;
+
+	FCommandResult Res;
+	TargetInventory->ExecuteCommand(FInventoryCommand::MakeMove(Index, TargetInventory->GetSize()), Res);
 }
 
 
 bool UInventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
-	UE_LOG(LogTemp, Log, TEXT("드롭 감지"));
-	/*if (UInventoryDragDropOperation* DragOp = Cast<UInventoryDragDropOperation>(InOperation))
+	if (UInventoryDragDropOperation* DragOp = Cast<UInventoryDragDropOperation>(InOperation))
 	{
-		
+
 		if (DragOp->Index == Index) return false;
 
-		if (AActionCharacter* Player = Cast<AActionCharacter>(GetOwningPlayerPawn()))
-		{
-			FCommandResult Res;
-			Player->GetInventoryComponent()->ExecuteCommand(FInventoryCommand::MakeMove(DragOp->Index, Index), Res);
-		}
-	}*/
+
+		FCommandResult Res;
+		TargetInventory->ExecuteCommand(FInventoryCommand::MakeMove(Index, DragOp->Index), Res);
+		TargetInventory->ExecuteCommand(FInventoryCommand::MakeMove(TargetInventory->GetSize(), Index), Res);
+	}
+
 	return true;
 }
 
 void UInventorySlotWidget::NativeOnDragCancelled(const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
 
-	UE_LOG(LogTemp, Log, TEXT("드래그 실패"));
+	if (UInventoryDragDropOperation* DragOp = Cast<UInventoryDragDropOperation>(InOperation))
+	{
+		if (APlayerController* PC = GetOwningPlayer())
+		{
+			//FHitResult HitRes;
+			//if (PC->GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, HitRes))
+			//{
+			//	//FVector Loc = GetOwningPlayerPawn()->GetActorLocation();
+			//	FCommandResult Res;
+			//	TargetInventory->ExecuteCommand(FInventoryCommand::MakeDrop(TargetInventory->GetSize(), HitRes.Location), Res);
+			//}
+			
+			FVector2D AbsPos = InDragDropEvent.GetScreenSpacePosition();
+			FVector2D PixelPos;
+			FVector2D ViewPortPos;
+			USlateBlueprintLibrary::AbsoluteToViewport(this, AbsPos, PixelPos, ViewPortPos);
+
+			FVector WorldPos;
+			FVector WorldDir;
+			if (PC->DeprojectScreenPositionToWorld(PixelPos.X, PixelPos.Y, WorldPos, WorldDir))
+			{
+				FVector Start = WorldPos;
+				FVector End = Start + WorldDir * 10000.0f;
+
+				FVector SpawnLocation;
+				FHitResult HitRes;
+				if (GetWorld()->LineTraceSingleByChannel(HitRes, Start, End, ECollisionChannel::ECC_Visibility))
+				{
+					SpawnLocation = HitRes.Location;
+				}
+				else
+				{
+					SpawnLocation = End;
+				}
+
+				FCommandResult Res;
+				TargetInventory->ExecuteCommand(FInventoryCommand::MakeDrop(TargetInventory->GetSize(), SpawnLocation), Res);
+			}
+		}
+
+		
+	}
 	return Super::NativeOnDragCancelled(InDragDropEvent, InOperation);
 }
 
@@ -114,7 +162,7 @@ FReply UInventorySlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry
 	{
 		if (FInventorySlot* InvenSlot = TargetInventory->GetSlot(Index))
 		{
-			if (InvenSlot->IsEmpty()) 
+			if (InvenSlot->IsEmpty())
 				return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
 
 			return FReply::Handled().DetectDrag(TakeWidget(), EKeys::LeftMouseButton);

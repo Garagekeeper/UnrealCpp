@@ -9,9 +9,10 @@
 #include "Component/InventoryComponent.h"
 #include "Interface/InventoryUserInterface.h"
 #include "Player/ActionPlayerController.h"
-#include "Widget/InventorySlotWidget.h"
 #include "Widget/DetailInfoWidget.h"
 #include "Components/CanvasPanelSlot.h"
+#include "Component/InventoryCommandTypes.h"
+#include "Widget/InventoryDragDropOperation.h"
 
 
 void UInventoryWidget::InitInventoryWidget(UInventoryComponent* InventoryComponent)
@@ -164,6 +165,16 @@ void UInventoryWidget::NativeConstruct()
 	}
 
 	CloseInventoryWidget();
+}
+
+bool UInventoryWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
+{
+	if (UInventoryDragDropOperation* DragOp = Cast<UInventoryDragDropOperation>(InOperation))
+	{
+		FCommandResult Res;
+		TargetInventory->ExecuteCommand(FInventoryCommand::MakeMove(TargetInventory->GetSize(), DragOp->Index), Res);
+	}
+	return true;
 }
 
 FReply UInventoryWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)

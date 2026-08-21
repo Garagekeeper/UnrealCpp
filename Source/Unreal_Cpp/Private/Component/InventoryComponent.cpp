@@ -36,6 +36,9 @@ bool UInventoryComponent::ExecuteCommand(const FInventoryCommand& Command, FComm
 		case EInventoryCommandType::Money:
 			HandleMoneyCommand(Command.Count, OutResult);
 			break;
+		case EInventoryCommandType::Clear:
+			HandleClearCommand(Command.TargetIndex, OutResult);
+			break;
 		default:
 			UE_LOG(LogTemp, Warning, TEXT("Invalid InventoryCommad"));
 			break;
@@ -286,6 +289,15 @@ bool UInventoryComponent::HandleUseCommand(const int32 InSlot, FCommandResult& O
 bool UInventoryComponent::HandleMoneyCommand(const int32 InDelta, FCommandResult& OutResult)
 {
 	AddMoney(InDelta);
+	return OutResult.bSuccess = true;
+}
+
+bool UInventoryComponent::HandleClearCommand(const int32 InSlot, FCommandResult& OutResult)
+{
+	if (!IsValidIndex(InSlot)) return  OutResult.bSuccess = false;
+	FInventorySlot* slot = GetSlot(InSlot);
+	if (!slot) return OutResult.bSuccess = false;
+	ClearSlot(InSlot);
 	return OutResult.bSuccess = true;
 }
 

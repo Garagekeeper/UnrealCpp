@@ -15,7 +15,8 @@ enum class EInventoryCommandType :uint8
 	Move,
 	Use,
 	Drop,
-	Money
+	Money,
+	Clear,
 };
 
 USTRUCT(BlueprintType)
@@ -88,6 +89,14 @@ public:
 		FInventoryCommand Command;
 		Command.Type = EInventoryCommandType::Money;
 		Command.Count = InDelta;
+		return Command;
+	}
+
+	static FInventoryCommand MakeClear(const int32 InSlot)
+	{
+		FInventoryCommand Command;
+		Command.Type = EInventoryCommandType::Clear;
+		Command.TargetIndex = InSlot;
 		return Command;
 	}
 };
