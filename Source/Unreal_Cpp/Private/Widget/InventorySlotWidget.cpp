@@ -153,6 +153,13 @@ void UInventorySlotWidget::NativeOnDragCancelled(const FDragDropEvent& InDragDro
 			if ((Dist.SquaredLength()) >= (MaxBound * MaxBound))
 			{
 				SpawnLocation = PlayerLoc + Dist.GetSafeNormal() * MaxBound;
+				FVector DownStart = SpawnLocation + FVector::UpVector * 10000.0f;
+				FVector EndStart = SpawnLocation + FVector::DownVector * 10000.0f;
+				FHitResult GroundHit;
+				if (GetWorld()->LineTraceSingleByChannel(GroundHit, DownStart, EndStart, ECollisionChannel::ECC_Visibility))
+				{
+					SpawnLocation = GroundHit.Location;
+				}
 			}
 
 			FCommandResult Result;
@@ -185,6 +192,7 @@ FReply UInventorySlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry
 			{
 				FCommandResult Res;
 				TargetInventory->ExecuteCommand(FInventoryCommand::MakeUse(Index), Res);
+				TargetInventory->ExecuteCommand(FInventoryCommand::MakeEquip(Index), Res);
 			}
 
 		}

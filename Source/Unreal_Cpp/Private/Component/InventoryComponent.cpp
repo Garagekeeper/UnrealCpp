@@ -5,6 +5,8 @@
 #include "Framework/SubSystem/PickupFactorySubsystem.h"
 #include "Widget/TemporaryWidget.h"
 #include "Data/Item/UsableItmeDataAsset.h"
+#include "Data/WeaponDataAsset.h"
+#include "Interface/WeaponUserInterface.h"
 
 // Sets default values for this component's properties
 UInventoryComponent::UInventoryComponent()
@@ -39,6 +41,9 @@ bool UInventoryComponent::ExecuteCommand(const FInventoryCommand& Command, FComm
 			break;
 		case EInventoryCommandType::Clear:
 			HandleClearCommand(Command.TargetIndex, OutResult);
+			break;
+		case EInventoryCommandType::Equip:
+			HandleEquipCommand(Command.TargetIndex, OutResult);
 			break;
 		default:
 			UE_LOG(LogTemp, Warning, TEXT("Invalid InventoryCommad"));
@@ -110,6 +115,21 @@ void UInventoryComponent::UseItem(int32 InIndex)
 		if (Usable->ItemAciton)
 		{
 			Usable->ItemAciton->ExecuteAction(GetOwner(), GetOwner());
+			UpdateSlotCount(InIndex, -1);
+		}
+	}
+}
+
+void UInventoryComponent::EquipItem(int32 InIndex)
+{
+	FInventorySlot* slot = GetSlot(InIndex);
+	if (!slot) return;
+	if (const UWeaponDataAsset* Weapon = Cast<const UWeaponDataAsset>(slot->ItemData))
+	{
+
+		if (GetOwner()->Implements<UWeaponUserInterface>())
+		{
+			IWeaponUserInterface::Execute_EquipWeapon(GetOwner(), Weapon);
 			UpdateSlotCount(InIndex, -1);
 		}
 	}
@@ -312,6 +332,13 @@ bool UInventoryComponent::HandleClearCommand(const int32 InSlot, FCommandResult&
 	FInventorySlot* slot = GetSlot(InSlot);
 	if (!slot) return OutResult.bSuccess = false;
 	ClearSlot(InSlot);
+	return OutResult.bSuccess = true;
+}
+
+bool UInventoryComponent::HandleEquipCommand(const int32 InSlot, FCommandResult& OutResult)
+{
+	if (!IsValidIndex(InSlot)) return  OutResult.bSuccess = false;
+	EquipItem(InSlot);
 	return OutResult.bSuccess = true;
 }
 

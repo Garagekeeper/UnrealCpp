@@ -15,6 +15,7 @@ enum class EInventoryCommandType :uint8
 	Move,
 	Use,
 	Drop,
+	Equip,
 	Money,
 	Clear,
 };
@@ -73,6 +74,14 @@ public:
 		Command.Type = EInventoryCommandType::Drop;
 		Command.TargetIndex = InSlot;
 		Command.Target3DPos = TargetPos;
+		return Command;
+	}
+	
+	static FInventoryCommand MakeEquip(const int32 InSlot)
+	{
+		FInventoryCommand Command;
+		Command.Type = EInventoryCommandType::Equip;
+		Command.TargetIndex = InSlot;
 		return Command;
 	}
 

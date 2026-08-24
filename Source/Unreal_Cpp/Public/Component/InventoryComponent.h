@@ -64,6 +64,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	int32				AddItem(const UItemDataAsset* InItemData, int32 InCount);
 	void				UseItem(int32 InIndex);
+	void				EquipItem(int32 InIndex);
 
 	/*-----------------------------
 	* Getter
@@ -89,6 +90,7 @@ protected:
 	bool				HandleUseCommand(const int32 InSlot, FCommandResult& OutResult);
 	bool				HandleMoneyCommand(const int32 InDelta, FCommandResult& OutResult);
 	bool				HandleClearCommand(const int32 InSlot, FCommandResult& OutResult);
+	bool				HandleEquipCommand(const int32 InSlot, FCommandResult& OutResult);
 
 	// Called when the game starts
 	virtual void		BeginPlay() override;
